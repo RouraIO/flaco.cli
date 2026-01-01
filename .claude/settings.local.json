@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(ls:*)",
+      "Bash(python3 -m pip install:*)",
+      "Bash(echo:*)",
+      "Bash(chmod:*)",
+      "Bash(./refresh-install.sh)",
+      "Bash(SETUPTOOLS_SCM_PRETEND_VERSION=0.86.1 pip install:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(export PYTHONPATH=\"/Users/roura.io/Documents/dev.local/flaco/flacoai:$PYTHONPATH\")",
+      "Bash(python:*)",
+      "Bash(./run-flaco.sh:*)",
+      "Bash(timeout 5 ./run-flaco.sh:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
