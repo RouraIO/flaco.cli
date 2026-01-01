@@ -40,25 +40,24 @@ echo -e "${CYAN}→${NC} Creating Flaco AI executable..."
 
 # Create the main executable
 FLACO_BIN="$LOCAL_BIN/flaco"
-cat > "$FLACO_BIN" << 'FLACO_SCRIPT_EOF'
+cat > "$FLACO_BIN" << FLACO_SCRIPT_EOF
 #!/usr/bin/env bash
 # Flaco AI CLI Launcher
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+PROJECT_ROOT="$PROJECT_ROOT"
 
 # Activate virtual environment if it exists
-if [ -d "$PROJECT_ROOT/flaco/venv" ]; then
-    source "$PROJECT_ROOT/flaco/venv/bin/activate"
+if [ -d "\$PROJECT_ROOT/venv" ]; then
+    source "\$PROJECT_ROOT/venv/bin/activate"
 fi
 
 # Set Python path
-export PYTHONPATH="$PROJECT_ROOT/flaco/flacoai:$PYTHONPATH"
+export PYTHONPATH="\$PROJECT_ROOT/flacoai:\$PYTHONPATH"
 export SETUPTOOLS_SCM_PRETEND_VERSION=0.86.1
 
 # Run Flaco AI
-cd "$PROJECT_ROOT/flaco/flacoai"
-python -m aider "$@"
+cd "\$PROJECT_ROOT/flacoai"
+python3 -m aider "\$@"
 FLACO_SCRIPT_EOF
 
 chmod +x "$FLACO_BIN"
