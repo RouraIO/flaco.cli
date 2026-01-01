@@ -39,6 +39,7 @@ Thumbs.db
 .env
 *.sqlite
 *.db
+.claude/settings.local.json
 
 # Temporary files
 tmp/
