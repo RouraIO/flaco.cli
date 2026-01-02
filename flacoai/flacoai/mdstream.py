@@ -8,7 +8,6 @@ from rich.console import Console
 from rich.live import Live
 from rich.markdown import CodeBlock, Heading, Markdown
 from rich.panel import Panel
-from rich.style import Style
 from rich.syntax import Syntax
 from rich.text import Text
 
@@ -80,19 +79,13 @@ class LeftHeading(Heading):
 
 
 class NoInsetMarkdown(Markdown):
-    """Markdown with code blocks that have no padding, left-justified headings, and transparent inline code."""
+    """Markdown with code blocks that have no padding and left-justified headings."""
 
     elements = {
         **Markdown.elements,
         "fence": NoInsetCodeBlock,
         "code_block": NoInsetCodeBlock,
         "heading_open": LeftHeading,
-    }
-
-    # Override inline code style to remove white background
-    MARKUP = {
-        **Markdown.MARKUP,
-        "code_inline": Style(color="cyan", bold=True),  # Cyan text, no background
     }
 
 

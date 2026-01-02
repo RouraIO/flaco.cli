@@ -1016,6 +1016,7 @@ class InputOutput:
             style=self.assistant_output_color,
             code_theme=self.code_theme,
             inline_code_lexer="text",
+            inline_code_theme=None,  # Disable white background on inline code
         )
         mdStream = MarkdownStream(mdargs=mdargs)
         return mdStream
