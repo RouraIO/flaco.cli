@@ -240,7 +240,7 @@ class Coder:
         cache_enabled = self.add_cache_headers or main_model.caches_by_default
         infinite_output = main_model.info.get("supports_assistant_prefill", False)
 
-        # Build compact header
+        # Build compact header (2 lines)
         compact_header = format_compact_header(
             version=__version__,
             model_name=main_model.name,
@@ -253,7 +253,7 @@ class Coder:
             cache_enabled=cache_enabled,
             infinite_output=infinite_output,
         )
-        lines.append(compact_header)
+        lines.extend(compact_header.split("\n"))
 
         # Add weak model info if different
         if weak_model is not main_model:

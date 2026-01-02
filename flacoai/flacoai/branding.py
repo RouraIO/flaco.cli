@@ -197,7 +197,7 @@ def format_stats(files_count=0, commits_count=0, session_duration=None):
 def format_compact_header(version, model_name, edit_format, directory, branch=None, file_count=0,
                          thinking_tokens=None, reasoning_effort=None, cache_enabled=False,
                          infinite_output=False):
-    """Format a compact, Claude Code-inspired header line.
+    """Format a compact, Claude Code-inspired header (2 lines).
 
     Args:
         version: Flaco AI version
@@ -212,7 +212,7 @@ def format_compact_header(version, model_name, edit_format, directory, branch=No
         infinite_output: Whether infinite output is supported
 
     Returns:
-        Compact formatted header string
+        Compact formatted header string (2 lines)
     """
     # Build model info with extras
     model_info = f"{model_name}"
@@ -238,17 +238,25 @@ def format_compact_header(version, model_name, edit_format, directory, branch=No
     if directory.startswith(home):
         directory = '~' + directory[len(home):]
 
-    # Build the compact header parts
-    parts = [
+    # Line 1: version | model | directory
+    line1_parts = [
         f"v{version}",
         model_info,
         directory,
     ]
+    line1 = " | ".join(line1_parts)
 
+    # Line 2: branch | files
+    line2_parts = []
     if branch:
-        parts.append(f"🌿 {branch}")
-
+        line2_parts.append(f"🌿 {branch}")
     if file_count > 0:
-        parts.append(f"{file_count:,} files")
+        line2_parts.append(f"{file_count:,} files")
 
-    return " | ".join(parts)
+    line2 = " | ".join(line2_parts) if line2_parts else ""
+
+    # Return both lines
+    if line2:
+        return f"{line1}\n{line2}"
+    else:
+        return line1
