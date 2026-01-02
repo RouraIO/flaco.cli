@@ -287,8 +287,8 @@ class RepoMap:
 
         # Run the tags queries
         query = language.query(query_scm)
-        cursor = tree_sitter.QueryCursor()
-        captures = cursor.captures(query, tree.root_node)
+        cursor = tree_sitter.QueryCursor(query)
+        captures = cursor.captures(tree.root_node)
 
         saw = set()
         if USING_TSL_PACK:
