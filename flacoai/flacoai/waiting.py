@@ -62,46 +62,26 @@ class Spinner:
         self.is_tty = sys.stdout.isatty()
         self.console = Console()
 
-        # Pre-render the animation frames using pure ASCII so they will
-        # always display, even on very limited terminals.
+        # Simple, compact animation frames - just cycling characters
+        # Uses star, plus, bullet for a minimal footprint
         ascii_frames = [
-            "#=        ",  # C1 C2 space(8)
-            "=#        ",  # C2 C1 space(8)
-            " =#       ",  # space(1) C2 C1 space(7)
-            "  =#      ",  # space(2) C2 C1 space(6)
-            "   =#     ",  # space(3) C2 C1 space(5)
-            "    =#    ",  # space(4) C2 C1 space(4)
-            "     =#   ",  # space(5) C2 C1 space(3)
-            "      =#  ",  # space(6) C2 C1 space(2)
-            "       =# ",  # space(7) C2 C1 space(1)
-            "        =#",  # space(8) C2 C1
-            "        #=",  # space(8) C1 C2
-            "       #= ",  # space(7) C1 C2 space(1)
-            "      #=  ",  # space(6) C1 C2 space(2)
-            "     #=   ",  # space(5) C1 C2 space(3)
-            "    #=    ",  # space(4) C1 C2 space(4)
-            "   #=     ",  # space(3) C1 C2 space(5)
-            "  #=      ",  # space(2) C1 C2 space(6)
-            " #=       ",  # space(1) C1 C2 space(7)
+            "*",  # star
+            "+",  # plus
+            "•",  # bullet
         ]
 
-        self.unicode_palette = "░█"
-        xlate_from, xlate_to = ("=#", self.unicode_palette)
-
-        # If unicode is supported, swap the ASCII chars for nicer glyphs.
+        # Try unicode symbols if supported, otherwise use ASCII
         if self._supports_unicode():
-            translation_table = str.maketrans(xlate_from, xlate_to)
-            frames = [f.translate(translation_table) for f in ascii_frames]
-            self.scan_char = xlate_to[xlate_from.find("#")]
+            frames = ["★", "✦", "●"]  # Unicode star, sparkle, circle
+            self.scan_char = "★"
         else:
             frames = ascii_frames
-            self.scan_char = "#"
+            self.scan_char = "*"
 
-        # Bounce the scanner back and forth.
         self.frames = frames
         self.frame_idx = Spinner.last_frame_idx  # Initialize from class variable
-        self.width = len(frames[0]) - 2  # number of chars between the brackets
-        self.animation_len = len(frames[0])
+        self.width = 1  # Just one character
+        self.animation_len = 1
         self.last_display_len = 0  # Length of the last spinner line (frame + text)
 
     def _supports_unicode(self) -> bool:

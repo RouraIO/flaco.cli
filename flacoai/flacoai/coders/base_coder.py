@@ -206,7 +206,7 @@ class Coder:
 
     def get_announcements(self):
         from flacoai.branding import (
-            FLACO_ASCII_ART,
+            get_flaco_ascii_art,
             get_random_tip,
             format_compact_header,
         )
@@ -214,8 +214,8 @@ class Coder:
 
         lines = []
 
-        # FlacoAI ASCII art
-        lines.extend(FLACO_ASCII_ART.split("\n"))
+        # FlacoAI ASCII art with version
+        lines.extend(get_flaco_ascii_art(__version__).split("\n"))
 
         # Gather info for compact header
         main_model = self.main_model
@@ -240,9 +240,15 @@ class Coder:
         cache_enabled = self.add_cache_headers or main_model.caches_by_default
         infinite_output = main_model.info.get("supports_assistant_prefill", False)
 
-        # Build compact header (2 lines)
+        # Get repo-map info
+        repo_map_tokens = None
+        repo_map_refresh = None
+        if self.repo_map and self.repo_map.max_map_tokens > 0:
+            repo_map_tokens = self.repo_map.max_map_tokens
+            repo_map_refresh = self.repo_map.refresh
+
+        # Build compact header (3 labeled lines)
         compact_header = format_compact_header(
-            version=__version__,
             model_name=main_model.name,
             edit_format=self.edit_format,
             directory=os.getcwd(),
@@ -252,30 +258,28 @@ class Coder:
             reasoning_effort=reasoning_effort,
             cache_enabled=cache_enabled,
             infinite_output=infinite_output,
+            repo_map_tokens=repo_map_tokens,
+            repo_map_refresh=repo_map_refresh,
         )
         lines.extend(compact_header.split("\n"))
 
         # Add weak model info if different
         if weak_model is not main_model:
-            lines.append(f"Weak model: {weak_model.name}")
+            lines.append(f"⚙️  Weak model: {weak_model.name}")
 
         # Add editor model info for architect mode
         if self.edit_format == "architect":
             lines.append(
-                f"Editor model: {main_model.editor_model.name} ({main_model.editor_edit_format})"
+                f"✏️  Editor model: {main_model.editor_model.name} ({main_model.editor_edit_format})"
             )
 
-        # Add repo-map info if relevant
-        if self.repo_map:
-            map_tokens = self.repo_map.max_map_tokens
-            if map_tokens > 0:
-                refresh = self.repo_map.refresh
-                lines.append(f"Repo-map: {map_tokens} tokens, {refresh} refresh")
-                max_map_tokens = self.main_model.get_repo_map_tokens() * 2
-                if map_tokens > max_map_tokens:
-                    lines.append(
-                        f"⚠️  map-tokens > {max_map_tokens} not recommended (too much irrelevant code)"
-                    )
+        # Add repo-map warning if needed
+        if self.repo_map and self.repo_map.max_map_tokens > 0:
+            max_map_tokens = self.main_model.get_repo_map_tokens() * 2
+            if self.repo_map.max_map_tokens > max_map_tokens:
+                lines.append(
+                    f"⚠️  Repo-map tokens > {max_map_tokens} not recommended (too much irrelevant code)"
+                )
 
         # Add warnings for large repos
         if file_count > 1000:

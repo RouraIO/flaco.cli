@@ -4,8 +4,19 @@ import random
 from datetime import datetime
 
 
-FLACO_ASCII_ART = r"""
-╔═══════════════════════════════════════════════════════════════════════════╗
+def get_flaco_ascii_art(version="1.6.0"):
+    """Generate FlacoAI ASCII art banner with version.
+
+    Args:
+        version: Version string to display in the header
+
+    Returns:
+        ASCII art banner as string
+    """
+    # Pad version to fit nicely in the header
+    version_text = f"FlacoAI v{version}"
+
+    return f"""╔═══════════════════════════════════════════════════════════════════════════╗
 ║                                                                           ║
 ║      ███████╗ ██╗      █████╗   ██████╗  ██████╗       █████╗  ██╗        ║
 ║      ██╔════╝ ██║     ██╔══██╗ ██╔════╝ ██╔═══██╗     ██╔══██╗ ██║        ║
@@ -14,10 +25,13 @@ FLACO_ASCII_ART = r"""
 ║      ██║      ███████╗██║  ██║ ╚██████╗ ╚██████╔╝     ██║  ██║ ██║        ║
 ║      ╚═╝      ╚══════╝╚═╝  ╚═╝  ╚═════╝  ╚═════╝      ╚═╝  ╚═╝ ╚═╝        ║
 ║                                                                           ║
-║        🚀 The Ultimate Local-First Swift & iOS Development Assistant      ║
+║   🚀 The Ultimate Local-First Swift & iOS Development Assistant • {version_text:<8} ║
 ║                                                                           ║
-╚═══════════════════════════════════════════════════════════════════════════╝
-"""
+╚═══════════════════════════════════════════════════════════════════════════╝"""
+
+
+# Keep old constant for backwards compatibility, but use function
+FLACO_ASCII_ART = get_flaco_ascii_art()
 
 STARTUP_TIPS = [
     "🍎 Run /init to let Flaco AI analyze your Swift/iOS project",
@@ -194,13 +208,12 @@ def format_stats(files_count=0, commits_count=0, session_duration=None):
     return "No activity yet"
 
 
-def format_compact_header(version, model_name, edit_format, directory, branch=None, file_count=0,
+def format_compact_header(model_name, edit_format, directory, branch=None, file_count=0,
                          thinking_tokens=None, reasoning_effort=None, cache_enabled=False,
-                         infinite_output=False):
-    """Format a compact, Claude Code-inspired header (2 lines).
+                         infinite_output=False, repo_map_tokens=None, repo_map_refresh=None):
+    """Format a compact, organized header (3 labeled lines).
 
     Args:
-        version: Flaco AI version
         model_name: LLM model name
         edit_format: Edit format being used
         directory: Working directory path
@@ -210,9 +223,11 @@ def format_compact_header(version, model_name, edit_format, directory, branch=No
         reasoning_effort: Reasoning effort setting (optional)
         cache_enabled: Whether prompt caching is enabled
         infinite_output: Whether infinite output is supported
+        repo_map_tokens: Repo-map token count (optional)
+        repo_map_refresh: Repo-map refresh setting (optional)
 
     Returns:
-        Compact formatted header string (2 lines)
+        Formatted header string (3 lines with labels)
     """
     # Build model info with extras
     model_info = f"{model_name}"
@@ -238,25 +253,26 @@ def format_compact_header(version, model_name, edit_format, directory, branch=No
     if directory.startswith(home):
         directory = '~' + directory[len(home):]
 
-    # Line 1: version | model | directory
-    line1_parts = [
-        f"v{version}",
-        model_info,
-        directory,
-    ]
-    line1 = " | ".join(line1_parts)
+    # Line 1: Model
+    line1 = f"🤖 Model: {model_info}"
 
-    # Line 2: branch | files
-    line2_parts = []
+    # Line 2: Directory
+    line2 = f"📁 Directory: {directory}"
+
+    # Line 3: Branch, files, repo-map
+    line3_parts = []
     if branch:
-        line2_parts.append(f"🌿 {branch}")
+        line3_parts.append(f"🌿 {branch}")
     if file_count > 0:
-        line2_parts.append(f"{file_count:,} files")
+        line3_parts.append(f"📊 {file_count:,} files")
+    if repo_map_tokens and repo_map_tokens > 0:
+        line3_parts.append(f"🗺️  {repo_map_tokens} tokens ({repo_map_refresh})")
 
-    line2 = " | ".join(line2_parts) if line2_parts else ""
+    line3 = " • ".join(line3_parts) if line3_parts else ""
 
-    # Return both lines
-    if line2:
-        return f"{line1}\n{line2}"
-    else:
-        return line1
+    # Return all lines
+    lines = [line1, line2]
+    if line3:
+        lines.append(line3)
+
+    return "\n".join(lines)
