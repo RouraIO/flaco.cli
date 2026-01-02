@@ -106,7 +106,7 @@ os.environ["SETUPTOOLS_SCM_PRETEND_VERSION"] = "1.5.0"
 os.chdir(PROJECT_ROOT / "flacoai")
 
 if __name__ == "__main__":
-    from aider.main import main
+    from flacoai.main import main
     sys.exit(main())
 """
 
