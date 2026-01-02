@@ -51,11 +51,20 @@ The end.
 
 
 class NoInsetCodeBlock(CodeBlock):
-    """A code block with syntax highlighting and no padding."""
+    """A code block with syntax highlighting, no padding, and dark theme."""
 
     def __rich_console__(self, console, options):
         code = str(self.text).rstrip()
-        syntax = Syntax(code, self.lexer_name, theme=self.theme, word_wrap=True, padding=(1, 0))
+        # Force dark theme and transparent background to avoid blinding white blocks
+        # Using 'monokai' which is a popular dark theme
+        syntax = Syntax(
+            code,
+            self.lexer_name,
+            theme="monokai",
+            word_wrap=True,
+            padding=(1, 0),
+            background_color="default"  # Use terminal's background color
+        )
         yield syntax
 
 
