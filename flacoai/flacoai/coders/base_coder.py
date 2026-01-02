@@ -595,7 +595,7 @@ class Coder:
                 # Create a styled panel
                 panel = Panel(
                     announcement_text,
-                    title="[bold cyan]FlacoAI[/bold cyan]",
+                    title=f"[bold cyan]FlacoAI v{__version__}[/bold cyan]",
                     border_style="cyan",
                     padding=(1, 2),
                     expand=False
