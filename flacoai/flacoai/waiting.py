@@ -13,11 +13,35 @@ Use it like:
     spinner.stop()
 """
 
+import random
 import sys
 import threading
 import time
 
 from rich.console import Console
+
+
+# Fun, light-hearted loading phrases
+THINKING_PHRASES = [
+    "Thinking",
+    "Pondering",
+    "Cogitating",
+    "Contemplating",
+    "Ruminating",
+    "Mulling it over",
+    "Brain-storming",
+    "Having a think",
+    "Hubbub-a-looing",
+    "Computing",
+    "Processing",
+    "Calculating",
+    "Meditating on code",
+    "Channeling the AI spirits",
+    "Consulting the algorithms",
+    "Brewing some thoughts",
+    "Firing up neurons",
+    "Warming up the brain cells",
+]
 
 
 class Spinner:
@@ -171,7 +195,10 @@ class Spinner:
 class WaitingSpinner:
     """Background spinner that can be started/stopped safely."""
 
-    def __init__(self, text: str = "Waiting for LLM", delay: float = 0.15):
+    def __init__(self, text: str = "Waiting for LLM", delay: float = 0.15, use_fun_phrases: bool = True):
+        # Use a random fun phrase if enabled, otherwise use the provided text
+        if use_fun_phrases:
+            text = f"{random.choice(THINKING_PHRASES)}..."
         self.spinner = Spinner(text)
         self.delay = delay
         self._stop_event = threading.Event()

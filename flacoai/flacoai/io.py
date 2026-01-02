@@ -246,7 +246,7 @@ class InputOutput:
         tool_output_color=None,
         tool_error_color="red",
         tool_warning_color="#FFA500",
-        assistant_output_color="blue",
+        assistant_output_color="#00FFFF",
         completion_menu_color=None,
         completion_menu_bg_color=None,
         completion_menu_current_color=None,

@@ -192,3 +192,63 @@ def format_stats(files_count=0, commits_count=0, session_duration=None):
         return " · ".join(stats)
 
     return "No activity yet"
+
+
+def format_compact_header(version, model_name, edit_format, directory, branch=None, file_count=0,
+                         thinking_tokens=None, reasoning_effort=None, cache_enabled=False,
+                         infinite_output=False):
+    """Format a compact, Claude Code-inspired header line.
+
+    Args:
+        version: Flaco AI version
+        model_name: LLM model name
+        edit_format: Edit format being used
+        directory: Working directory path
+        branch: Git branch name (optional)
+        file_count: Number of files in repo
+        thinking_tokens: Thinking token budget (optional)
+        reasoning_effort: Reasoning effort setting (optional)
+        cache_enabled: Whether prompt caching is enabled
+        infinite_output: Whether infinite output is supported
+
+    Returns:
+        Compact formatted header string
+    """
+    # Build model info with extras
+    model_info = f"{model_name}"
+    extras = []
+
+    if edit_format:
+        extras.append(edit_format)
+    if thinking_tokens:
+        extras.append(f"{thinking_tokens} think")
+    if reasoning_effort:
+        extras.append(f"reasoning {reasoning_effort}")
+    if cache_enabled:
+        extras.append("cache")
+    if infinite_output:
+        extras.append("∞ output")
+
+    if extras:
+        model_info += f" ({', '.join(extras)})"
+
+    # Build directory info
+    from pathlib import Path
+    home = str(Path.home())
+    if directory.startswith(home):
+        directory = '~' + directory[len(home):]
+
+    # Build the compact header parts
+    parts = [
+        f"v{version}",
+        model_info,
+        directory,
+    ]
+
+    if branch:
+        parts.append(f"🌿 {branch}")
+
+    if file_count > 0:
+        parts.append(f"{file_count:,} files")
+
+    return " | ".join(parts)

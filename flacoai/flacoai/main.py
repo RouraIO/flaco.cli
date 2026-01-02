@@ -575,7 +575,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         args.user_input_color = "green"
         args.tool_error_color = "red"
         args.tool_warning_color = "#FFA500"
-        args.assistant_output_color = "blue"
+        args.assistant_output_color = "#00FFFF"
         args.code_theme = "default"
 
     if return_coder and args.yes_always is None:

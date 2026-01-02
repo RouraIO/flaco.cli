@@ -207,107 +207,81 @@ class Coder:
     def get_announcements(self):
         from flacoai.branding import (
             FLACO_ASCII_ART,
-            get_welcome_message,
             get_random_tip,
-            get_session_info,
-            format_session_header
+            format_compact_header,
         )
-        from flacoai.activity_tracker import ActivityTracker
+        import os
 
         lines = []
 
         # FlacoAI ASCII art
         lines.extend(FLACO_ASCII_ART.split("\n"))
 
-        # Session info header (directory, branch, time) with decorative border
-        session_info = get_session_info(self.repo)
-        session_header = format_session_header(session_info)
-        lines.extend(session_header.split("\n"))
-        lines.append("")
-
-        # Personalized welcome message
-        git_config = {}
-        if self.repo and hasattr(self.repo, 'repo'):
-            try:
-                git_config["user.name"] = self.repo.repo.git.config("--get", "user.name")
-            except Exception:
-                pass
-
-        lines.append(get_welcome_message(git_config))
-        lines.append("")
-
-        # Version info
-        lines.append(f"FlacoAI v{__version__} (Enhanced AI Coding Assistant)")
-
-        # Model
+        # Gather info for compact header
         main_model = self.main_model
         weak_model = main_model.weak_model
 
-        if weak_model is not main_model:
-            prefix = "Main model"
-        else:
-            prefix = "Model"
+        # Get git branch
+        branch = None
+        if self.repo and hasattr(self.repo, 'repo'):
+            try:
+                branch = self.repo.repo.active_branch.name
+            except Exception:
+                pass
 
-        output = f"{prefix}: {main_model.name} with {self.edit_format} edit format"
-
-        # Check for thinking token budget
-        thinking_tokens = main_model.get_thinking_tokens()
-        if thinking_tokens:
-            output += f", {thinking_tokens} think tokens"
-
-        # Check for reasoning effort
-        reasoning_effort = main_model.get_reasoning_effort()
-        if reasoning_effort:
-            output += f", reasoning {reasoning_effort}"
-
-        if self.add_cache_headers or main_model.caches_by_default:
-            output += ", prompt cache"
-        if main_model.info.get("supports_assistant_prefill"):
-            output += ", infinite output"
-
-        lines.append(output)
-
-        if self.edit_format == "architect":
-            output = (
-                f"Editor model: {main_model.editor_model.name} with"
-                f" {main_model.editor_edit_format} edit format"
-            )
-            lines.append(output)
-
-        if weak_model is not main_model:
-            output = f"Weak model: {weak_model.name}"
-            lines.append(output)
-
-        # Repo
+        # Get file count
+        file_count = 0
         if self.repo:
-            rel_repo_dir = self.repo.get_rel_repo_dir()
-            num_files = len(self.repo.get_tracked_files())
+            file_count = len(self.repo.get_tracked_files())
 
-            lines.append(f"Git repo: {rel_repo_dir} with {num_files:,} files")
-            if num_files > 1000:
-                lines.append(
-                    "Warning: For large repos, consider using --subtree-only and .flacoaiignore"
-                )
-                lines.append(f"See: {urls.large_repos}")
-        else:
-            lines.append("Git repo: none")
+        # Get model extras
+        thinking_tokens = main_model.get_thinking_tokens()
+        reasoning_effort = main_model.get_reasoning_effort()
+        cache_enabled = self.add_cache_headers or main_model.caches_by_default
+        infinite_output = main_model.info.get("supports_assistant_prefill", False)
 
-        # Repo-map
+        # Build compact header
+        compact_header = format_compact_header(
+            version=__version__,
+            model_name=main_model.name,
+            edit_format=self.edit_format,
+            directory=os.getcwd(),
+            branch=branch,
+            file_count=file_count,
+            thinking_tokens=thinking_tokens,
+            reasoning_effort=reasoning_effort,
+            cache_enabled=cache_enabled,
+            infinite_output=infinite_output,
+        )
+        lines.append(compact_header)
+
+        # Add weak model info if different
+        if weak_model is not main_model:
+            lines.append(f"Weak model: {weak_model.name}")
+
+        # Add editor model info for architect mode
+        if self.edit_format == "architect":
+            lines.append(
+                f"Editor model: {main_model.editor_model.name} ({main_model.editor_edit_format})"
+            )
+
+        # Add repo-map info if relevant
         if self.repo_map:
             map_tokens = self.repo_map.max_map_tokens
             if map_tokens > 0:
                 refresh = self.repo_map.refresh
-                lines.append(f"Repo-map: using {map_tokens} tokens, {refresh} refresh")
+                lines.append(f"Repo-map: {map_tokens} tokens, {refresh} refresh")
                 max_map_tokens = self.main_model.get_repo_map_tokens() * 2
                 if map_tokens > max_map_tokens:
                     lines.append(
-                        f"Warning: map-tokens > {max_map_tokens} is not recommended. Too much"
-                        " irrelevant code can confuse LLMs."
+                        f"⚠️  map-tokens > {max_map_tokens} not recommended (too much irrelevant code)"
                     )
-            else:
-                lines.append("Repo-map: disabled because map_tokens == 0")
-        else:
-            lines.append("Repo-map: disabled")
+
+        # Add warnings for large repos
+        if file_count > 1000:
+            lines.append(
+                f"⚠️  Large repo: consider --subtree-only and .flacoaiignore"
+            )
 
         # Files
         for fname in self.get_inchat_relative_files():
@@ -325,6 +299,7 @@ class Coder:
 
         # Recent activity summary
         try:
+            from flacoai.activity_tracker import ActivityTracker
             tracker = ActivityTracker()
             activity = tracker.get_recent_activity_summary(days=7)
             if activity and activity.get('session_count', 0) > 0:
@@ -343,7 +318,7 @@ class Coder:
 
         # Tip of the day
         lines.append("")
-        lines.append(f"💡 Tip: {get_random_tip()}")
+        lines.append(f"💡 {get_random_tip()}")
 
         return lines
 
