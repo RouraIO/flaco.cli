@@ -57,12 +57,12 @@ class TestHelp(unittest.TestCase):
         commands = Commands(io, coder)
 
         help_coder_run = MagicMock(return_value="")
-        aider.coders.HelpCoder.run = help_coder_run
+        flacoai.coders.HelpCoder.run = help_coder_run
 
         def run_help_command():
             try:
                 commands.cmd_help("hi")
-            except aider.commands.SwitchCoder:
+            except flacoai.commands.SwitchCoder:
                 pass
             else:
                 # If no exception was raised, fail the test
@@ -79,7 +79,7 @@ class TestHelp(unittest.TestCase):
 
     def test_ask_without_mock(self):
         help_instance = Help()
-        question = "What is aider?"
+        question = "What is flacoai?"
         result = help_instance.ask(question)
 
         self.assertIn(f"# Question: {question}", result)
@@ -97,37 +97,37 @@ class TestHelp(unittest.TestCase):
 
     def test_fname_to_url_unix(self):
         # Test relative Unix-style paths
-        self.assertEqual(fname_to_url("website/docs/index.md"), "https://aider.chat/docs")
+        self.assertEqual(fname_to_url("website/docs/index.md"), "https://flacoai.chat/docs")
         self.assertEqual(
-            fname_to_url("website/docs/usage.md"), "https://aider.chat/docs/usage.html"
+            fname_to_url("website/docs/usage.md"), "https://flacoai.chat/docs/usage.html"
         )
         self.assertEqual(fname_to_url("website/_includes/header.md"), "")
 
         # Test absolute Unix-style paths
         self.assertEqual(
-            fname_to_url("/home/user/project/website/docs/index.md"), "https://aider.chat/docs"
+            fname_to_url("/home/user/project/website/docs/index.md"), "https://flacoai.chat/docs"
         )
         self.assertEqual(
             fname_to_url("/home/user/project/website/docs/usage.md"),
-            "https://aider.chat/docs/usage.html",
+            "https://flacoai.chat/docs/usage.html",
         )
         self.assertEqual(fname_to_url("/home/user/project/website/_includes/header.md"), "")
 
     def test_fname_to_url_windows(self):
         # Test relative Windows-style paths
-        self.assertEqual(fname_to_url(r"website\docs\index.md"), "https://aider.chat/docs")
+        self.assertEqual(fname_to_url(r"website\docs\index.md"), "https://flacoai.chat/docs")
         self.assertEqual(
-            fname_to_url(r"website\docs\usage.md"), "https://aider.chat/docs/usage.html"
+            fname_to_url(r"website\docs\usage.md"), "https://flacoai.chat/docs/usage.html"
         )
         self.assertEqual(fname_to_url(r"website\_includes\header.md"), "")
 
         # Test absolute Windows-style paths
         self.assertEqual(
-            fname_to_url(r"C:\Users\user\project\website\docs\index.md"), "https://aider.chat/docs"
+            fname_to_url(r"C:\Users\user\project\website\docs\index.md"), "https://flacoai.chat/docs"
         )
         self.assertEqual(
             fname_to_url(r"C:\Users\user\project\website\docs\usage.md"),
-            "https://aider.chat/docs/usage.html",
+            "https://flacoai.chat/docs/usage.html",
         )
         self.assertEqual(fname_to_url(r"C:\Users\user\project\website\_includes\header.md"), "")
 

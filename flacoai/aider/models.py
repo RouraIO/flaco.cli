@@ -149,7 +149,7 @@ class ModelInfoManager:
     CACHE_TTL = 60 * 60 * 24  # 24 hours
 
     def __init__(self):
-        self.cache_dir = Path.home() / ".aider" / "caches"
+        self.cache_dir = Path.home() / ".flacoai" / "caches"
         self.cache_file = self.cache_dir / "model_prices_and_context_window.json"
         self.content = None
         self.local_model_metadata = {}
@@ -948,7 +948,7 @@ class Model(ModelSettings):
             os.environ[openai_api_key] = token
 
     def send_completion(self, messages, functions, stream, temperature=None):
-        if os.environ.get("AIDER_SANITY_CHECK_TURNS"):
+        if os.environ.get("aider_SANITY_CHECK_TURNS"):
             sanity_check_messages(messages)
 
         if self.is_deepseek_r1():
@@ -1002,7 +1002,7 @@ class Model(ModelSettings):
         return hash_object, res
 
     def simple_send_with_retries(self, messages):
-        from aider.exceptions import LiteLLMExceptions
+        from flacoai.exceptions import LiteLLMExceptions
 
         litellm_ex = LiteLLMExceptions()
         if "deepseek-reasoner" in self.name:
@@ -1024,7 +1024,7 @@ class Model(ModelSettings):
                 if not response or not hasattr(response, "choices") or not response.choices:
                     return None
                 res = response.choices[0].message.content
-                from aider.reasoning_tags import remove_reasoning_content
+                from flacoai.reasoning_tags import remove_reasoning_content
 
                 return remove_reasoning_content(res, self.reasoning_tag)
 

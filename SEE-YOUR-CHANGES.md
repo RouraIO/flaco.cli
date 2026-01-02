@@ -13,7 +13,7 @@ cd /Users/roura.io/Documents/dev.local/flaco
 
 ```bash
 # After installation completes, test with:
-python -m aider --help
+python -m flacoai --help
 ```
 
 ### Step 3: See the Beautiful Header
@@ -24,7 +24,7 @@ mkdir -p ~/test-flaco && cd ~/test-flaco
 git init
 
 # Run FlacoAI
-python -m aider
+python -m flacoai
 ```
 
 You should now see the **new FlacoAI header** with:
@@ -47,7 +47,7 @@ cd /Users/roura.io/Documents/dev.local/flaco
 source venv/bin/activate  # Or: python3 -m venv venv && source venv/bin/activate
 
 # 3. Uninstall old version
-pip uninstall -y aider-chat
+pip uninstall -y flacoai-chat
 
 # 4. Install new version in development mode
 cd flacoai
@@ -57,7 +57,7 @@ pip install -e .
 cd ..
 
 # 6. Run FlacoAI
-python -m aider
+python -m flacoai
 ```
 
 ---
@@ -69,7 +69,7 @@ python -m aider
 ```bash
 # Start FlacoAI in any git repository
 cd ~/your-project  # or mkdir ~/test && cd ~/test && git init
-python -m aider
+python -m flacoai
 
 # Expected: Beautiful boxed header with FlacoAI ASCII art
 ```
@@ -145,12 +145,12 @@ Type '/help jira' for details
 
 **Fix:**
 ```bash
-# 1. Find where aider is installed
-which aider
-pip show aider-chat
+# 1. Find where flacoai is installed
+which flacoai
+pip show flacoai-chat
 
 # 2. Uninstall ALL versions
-pip uninstall -y aider-chat aider
+pip uninstall -y flacoai-chat flacoai
 
 # 3. Clear Python cache
 find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
@@ -161,7 +161,7 @@ cd /Users/roura.io/Documents/dev.local/flaco/flacoai
 pip install -e .
 
 # 5. Run with explicit path
-python -m aider
+python -m flacoai
 ```
 
 ### Issue: Import errors
@@ -209,7 +209,7 @@ pip install -e . --force-reinstall --no-cache-dir
 
 ## 🎯 Expected Behavior Summary
 
-After successful installation, when you run `python -m aider`:
+After successful installation, when you run `python -m flacoai`:
 
 1. **✅ Beautiful Header**: Box-style ASCII art with "FLACO AI"
 2. **✅ Personalized Greeting**: "Good [time], [Name]! Welcome back."
@@ -226,12 +226,12 @@ To see exactly what's happening:
 
 ```bash
 # Run with verbose output
-python -m aider --verbose
+python -m flacoai --verbose
 
 # Or check if modules are imported correctly
 python -c "
-from aider.branding import FLACO_ASCII_ART, get_welcome_message
-from aider.activity_tracker import ActivityTracker
+from flacoai.branding import FLACO_ASCII_ART, get_welcome_message
+from flacoai.activity_tracker import ActivityTracker
 print('✅ Branding module loaded')
 print('✅ Activity tracker loaded')
 print(FLACO_ASCII_ART)
@@ -246,25 +246,25 @@ If you're still seeing the old interface:
 
 1. **Check installation location:**
    ```bash
-   pip show aider-chat
+   pip show flacoai-chat
    ```
 
 2. **Verify modified files exist:**
    ```bash
-   ls -la /Users/roura.io/Documents/dev.local/flaco/flacoai/aider/branding.py
-   ls -la /Users/roura.io/Documents/dev.local/flaco/flacoai/aider/activity_tracker.py
+   ls -la /Users/roura.io/Documents/dev.local/flaco/flacoai/flacoai/branding.py
+   ls -la /Users/roura.io/Documents/dev.local/flaco/flacoai/flacoai/activity_tracker.py
    ```
 
 3. **Test imports directly:**
    ```bash
    cd /Users/roura.io/Documents/dev.local/flaco/flacoai
-   python -c "from aider.branding import FLACO_ASCII_ART; print(FLACO_ASCII_ART)"
+   python -c "from flacoai.branding import FLACO_ASCII_ART; print(FLACO_ASCII_ART)"
    ```
 
 4. **Run from source:**
    ```bash
    cd /Users/roura.io/Documents/dev.local/flaco/flacoai
-   python -m aider
+   python -m flacoai
    ```
 
 ---

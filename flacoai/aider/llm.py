@@ -6,11 +6,11 @@ from aider.dump import dump  # noqa: F401
 
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
 
-AIDER_SITE_URL = "https://aider.chat"
-AIDER_APP_NAME = "Aider"
+flacoai_SITE_URL = "https://flacoai.chat"
+flacoai_APP_NAME = "aider"
 
-os.environ["OR_SITE_URL"] = AIDER_SITE_URL
-os.environ["OR_APP_NAME"] = AIDER_APP_NAME
+os.environ["OR_SITE_URL"] = flacoai_SITE_URL
+os.environ["OR_APP_NAME"] = flacoai_APP_NAME
 os.environ["LITELLM_MODE"] = "PRODUCTION"
 
 # `import litellm` takes 1.5 seconds, defer it!

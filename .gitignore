@@ -35,7 +35,7 @@ htmlcov/
 Thumbs.db
 
 # Project specific
-.aider*
+.flacoai*
 .env
 *.sqlite
 *.db

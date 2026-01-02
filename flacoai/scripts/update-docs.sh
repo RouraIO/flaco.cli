@@ -10,25 +10,25 @@ else
 fi
 
 if [ "$ARG" != "--check" ]; then
-  tail -1000 ~/.aider/analytics.jsonl > aider/website/assets/sample-analytics.jsonl
-  cog -r aider/website/docs/faq.md
+  tail -1000 ~/.flacoai/analytics.jsonl > flacoai/website/assets/sample-analytics.jsonl
+  cog -r flacoai/website/docs/faq.md
 fi
 
 # README.md before index.md, because index.md uses cog to include README.md
 cog $ARG \
     README.md \
-    aider/website/index.html \
-    aider/website/HISTORY.md \
-    aider/website/docs/usage/commands.md \
-    aider/website/docs/languages.md \
-    aider/website/docs/config/dotenv.md \
-    aider/website/docs/config/options.md \
-    aider/website/docs/config/aider_conf.md \
-    aider/website/docs/config/adv-model-settings.md \
-    aider/website/docs/config/model-aliases.md \
-    aider/website/docs/leaderboards/index.md \
-    aider/website/docs/leaderboards/edit.md \
-    aider/website/docs/leaderboards/refactor.md \
-    aider/website/docs/llms/other.md \
-    aider/website/docs/more/infinite-output.md \
-    aider/website/docs/legal/privacy.md
+    flacoai/website/index.html \
+    flacoai/website/HISTORY.md \
+    flacoai/website/docs/usage/commands.md \
+    flacoai/website/docs/languages.md \
+    flacoai/website/docs/config/dotenv.md \
+    flacoai/website/docs/config/options.md \
+    flacoai/website/docs/config/flacoai_conf.md \
+    flacoai/website/docs/config/adv-model-settings.md \
+    flacoai/website/docs/config/model-aliases.md \
+    flacoai/website/docs/leaderboards/index.md \
+    flacoai/website/docs/leaderboards/edit.md \
+    flacoai/website/docs/leaderboards/refactor.md \
+    flacoai/website/docs/llms/other.md \
+    flacoai/website/docs/more/infinite-output.md \
+    flacoai/website/docs/legal/privacy.md

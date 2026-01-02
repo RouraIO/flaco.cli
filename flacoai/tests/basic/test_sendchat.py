@@ -94,21 +94,21 @@ class TestSendChat(unittest.TestCase):
         assert mock_print.call_count == 1
 
     def test_ensure_alternating_roles_empty(self):
-        from aider.sendchat import ensure_alternating_roles
+        from flacoai.sendchat import ensure_alternating_roles
 
         messages = []
         result = ensure_alternating_roles(messages)
         assert result == []
 
     def test_ensure_alternating_roles_single_message(self):
-        from aider.sendchat import ensure_alternating_roles
+        from flacoai.sendchat import ensure_alternating_roles
 
         messages = [{"role": "user", "content": "Hello"}]
         result = ensure_alternating_roles(messages)
         assert result == messages
 
     def test_ensure_alternating_roles_already_alternating(self):
-        from aider.sendchat import ensure_alternating_roles
+        from flacoai.sendchat import ensure_alternating_roles
 
         messages = [
             {"role": "user", "content": "Hello"},
@@ -119,7 +119,7 @@ class TestSendChat(unittest.TestCase):
         assert result == messages
 
     def test_ensure_alternating_roles_consecutive_user(self):
-        from aider.sendchat import ensure_alternating_roles
+        from flacoai.sendchat import ensure_alternating_roles
 
         messages = [
             {"role": "user", "content": "Hello"},
@@ -134,7 +134,7 @@ class TestSendChat(unittest.TestCase):
         assert result == expected
 
     def test_ensure_alternating_roles_consecutive_assistant(self):
-        from aider.sendchat import ensure_alternating_roles
+        from flacoai.sendchat import ensure_alternating_roles
 
         messages = [
             {"role": "assistant", "content": "Hi there"},
@@ -149,7 +149,7 @@ class TestSendChat(unittest.TestCase):
         assert result == expected
 
     def test_ensure_alternating_roles_mixed_sequence(self):
-        from aider.sendchat import ensure_alternating_roles
+        from flacoai.sendchat import ensure_alternating_roles
 
         messages = [
             {"role": "user", "content": "Hello"},

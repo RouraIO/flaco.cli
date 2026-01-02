@@ -146,7 +146,7 @@ class Commands:
     def cmd_chat_mode(self, args):
         "Switch to a new chat mode"
 
-        from aider import coders
+        from flacoai import coders
 
         ef = args.strip()
         valid_formats = OrderedDict(
@@ -162,7 +162,7 @@ class Commands:
 
         show_formats = OrderedDict(
             [
-                ("help", "Get help about using aider (usage, config, troubleshoot)."),
+                ("help", "Get help about using flacoai (usage, config, troubleshoot)."),
                 ("ask", "Ask questions about your code without making any changes."),
                 ("code", "Ask for changes to your code (using the best edit format)."),
                 (
@@ -559,7 +559,7 @@ class Commands:
         self.io.tool_output(f"{cost_pad}{fmt(limit)} tokens max context window size")
 
     def cmd_undo(self, args):
-        "Undo the last git commit if it was done by aider"
+        "Undo the last git commit if it was done by flacoai"
         try:
             self.raw_cmd_undo(args)
         except ANY_GIT_ERROR as err:
@@ -578,8 +578,8 @@ class Commands:
         last_commit_hash = self.coder.repo.get_head_commit_sha(short=True)
         last_commit_message = self.coder.repo.get_head_commit_message("(unknown)").strip()
         last_commit_message = (last_commit_message.splitlines() or [""])[0]
-        if last_commit_hash not in self.coder.aider_commit_hashes:
-            self.io.tool_error("The last commit was not made by aider in this chat session.")
+        if last_commit_hash not in self.coder.flacoai_commit_hashes:
+            self.io.tool_error("The last commit was not made by flacoai in this chat session.")
             self.io.tool_output(
                 "You could try `/git reset --hard HEAD^` but be aware that this is a destructive"
                 " command!"
@@ -805,7 +805,7 @@ class Commands:
         return res
 
     def cmd_add(self, args):
-        "Add files to the chat so aider can edit them or review them in detail"
+        "Add files to the chat so flacoai can edit them or review them in detail"
 
         all_matched_files = set()
 
@@ -817,7 +817,7 @@ class Commands:
                 fname = Path(self.coder.root) / word
 
             if self.coder.repo and self.coder.repo.ignored_file(fname):
-                self.io.tool_warning(f"Skipping {fname} due to aiderignore or --subtree-only.")
+                self.io.tool_warning(f"Skipping {fname} due to flacoaiignore or --subtree-only.")
                 continue
 
             if fname.exists():
@@ -1112,17 +1112,17 @@ class Commands:
             else:
                 self.io.tool_output(f"{cmd} No description available.")
         self.io.tool_output()
-        self.io.tool_output("Use `/help <question>` to ask questions about how to use aider.")
+        self.io.tool_output("Use `/help <question>` to ask questions about how to use flacoai.")
 
     def cmd_help(self, args):
-        "Ask questions about aider"
+        "Ask questions about flacoai"
 
         if not args.strip():
             self.basic_help()
             return
 
         self.coder.event("interactive help")
-        from aider.coders.base_coder import Coder
+        from flacoai.coders.base_coder import Coder
 
         if not self.help:
             res = install_help_extra(self.io)
@@ -1142,7 +1142,7 @@ class Commands:
         )
         user_msg = self.help.ask(args)
         user_msg += """
-# Announcement lines from when this session of aider was launched:
+# Announcement lines from when this session of flacoai was launched:
 
 """
         user_msg += "\n".join(self.coder.get_announcements()) + "\n"
@@ -1198,7 +1198,7 @@ class Commands:
             # Switch to the corresponding chat mode if no args provided
             return self.cmd_chat_mode(edit_format)
 
-        from aider.coders.base_coder import Coder
+        from flacoai.coders.base_coder import Coder
 
         coder = Coder.create(
             io=self.io,
@@ -1432,8 +1432,8 @@ class Commands:
         """
         self._track_command("review")
 
-        from aider.coders.review_coder import ReviewCoder
-        from aider.report_generator import ReviewReportGenerator
+        from flacoai.coders.review_coder import ReviewCoder
+        from flacoai.report_generator import ReviewReportGenerator
         import os
         from pathlib import Path
 
@@ -1610,8 +1610,8 @@ class Commands:
         """
         self._track_command("jira")
 
-        from aider.integrations.jira_client import JiraClient
-        from aider.integrations.jira_formatter import JiraFormatter
+        from flacoai.integrations.jira_client import JiraClient
+        from flacoai.integrations.jira_formatter import JiraFormatter
 
         # Parse subcommand
         args_parts = args.strip().split(maxsplit=1) if args.strip() else []
@@ -1833,7 +1833,7 @@ class Commands:
             return
 
         # Filter by severity (only high and critical)
-        from aider.analyzers import Severity
+        from flacoai.analyzers import Severity
 
         high_severity = [r for r in results if r.severity in [Severity.HIGH, Severity.CRITICAL]]
 
@@ -1976,7 +1976,7 @@ Focus on Swift/iOS best practices."""
         """
         self._track_command("init")
 
-        from aider.project_memory import init_project_memory
+        from flacoai.project_memory import init_project_memory
 
         force = "--force" in args if args else False
 
@@ -2010,7 +2010,7 @@ Focus on Swift/iOS best practices."""
         """
         self._track_command("memory")
 
-        from aider.project_memory import init_project_memory, add_memory_note, ProjectScanner
+        from flacoai.project_memory import init_project_memory, add_memory_note, ProjectScanner
         from pathlib import Path
 
         # Parse subcommand
@@ -2131,7 +2131,7 @@ Focus on Swift/iOS best practices."""
 
     def _llm_list(self, category=None):
         """List available models."""
-        from aider.models import MODEL_ALIASES, MODEL_SETTINGS
+        from flacoai.models import MODEL_ALIASES, MODEL_SETTINGS
 
         self.io.tool_output("\n" + "="*75)
         self.io.tool_output("🤖 Available Models")
@@ -2192,7 +2192,7 @@ Focus on Swift/iOS best practices."""
 
     def _llm_search(self, search_term):
         """Search for models by name."""
-        from aider.models import fuzzy_match_models
+        from flacoai.models import fuzzy_match_models
 
         matches = fuzzy_match_models(search_term)
 
@@ -2824,7 +2824,7 @@ Make it friendly and educational for new developers."""
 
     def cmd_report(self, args):
         "Report a problem by opening a GitHub Issue"
-        from aider.report import report_github_issue
+        from flacoai.report import report_github_issue
 
         announcements = "\n".join(self.coder.get_announcements())
         issue_text = announcements

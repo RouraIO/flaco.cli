@@ -28,7 +28,7 @@ source venv/bin/activate
 
 # Uninstall old version if exists
 echo "🗑️  Removing old installation..."
-pip uninstall -y aider-chat 2>/dev/null || true
+pip uninstall -y flacoai-chat 2>/dev/null || true
 
 # Install in editable mode
 echo "📥 Installing FlacoAI in development mode..."
@@ -39,12 +39,12 @@ echo ""
 echo "✅ Installation complete!"
 echo ""
 echo "🚀 To run FlacoAI, use one of these commands:"
-echo "   1. python -m aider"
-echo "   2. aider (if in PATH)"
+echo "   1. python -m flacoai"
+echo "   2. flacoai (if in PATH)"
 echo ""
 echo "💡 Quick test:"
-echo "   python -m aider --help"
+echo "   python -m flacoai --help"
 echo ""
 echo "🎯 For full startup experience with branding:"
-echo "   cd ~/test-project && python -m aider"
+echo "   cd ~/test-project && python -m flacoai"
 echo ""

@@ -13,9 +13,9 @@ NC = '\033[0m'  # No Color
 
 ASCII_ART = """╔═══════════════════════════════════════════════════════════════════════════╗
 ║                                                                           ║
-║      ███████╗ ██╗      █████╗   ██████╗  ██████╗       █████╗  ██╗       ║
+║      ███████╗ ██╗      █████╗   ██████╗  ██████╗       █████╗  ██╗        ║
 ║      ██╔════╝ ██║     ██╔══██╗ ██╔════╝ ██╔═══██╗     ██╔══██╗ ██║        ║
-║      █████╗   ██║     ███████║ ██║      ██║   ██║     ███████║ ██║       ║
+║      █████╗   ██║     ███████║ ██║      ██║   ██║     ███████║ ██║        ║
 ║      ██╔══╝   ██║     ██╔══██║ ██║      ██║   ██║     ██╔══██║ ██║        ║
 ║      ██║      ███████╗██║  ██║ ╚██████╗ ╚██████╔╝     ██║  ██║ ██║        ║
 ║      ╚═╝      ╚══════╝╚═╝  ╚═╝  ╚═════╝  ╚═════╝      ╚═╝  ╚═╝ ╚═╝        ║
@@ -98,15 +98,15 @@ from pathlib import Path
 PROJECT_ROOT = Path("{project_root}")
 
 # Set Python path
-sys.path.insert(0, str(PROJECT_ROOT / "flacoai"))
-os.environ["PYTHONPATH"] = str(PROJECT_ROOT / "flacoai") + os.pathsep + os.environ.get("PYTHONPATH", "")
+sys.path.insert(0, str(PROJECT_ROOT / "aider"))
+os.environ["PYTHONPATH"] = str(PROJECT_ROOT / "aider") + os.pathsep + os.environ.get("PYTHONPATH", "")
 os.environ["SETUPTOOLS_SCM_PRETEND_VERSION"] = "0.86.1"
 
 # Run Flaco AI
-os.chdir(PROJECT_ROOT / "flacoai")
+os.chdir(PROJECT_ROOT / "aider")
 
 if __name__ == "__main__":
-    from aider.main import main
+    from flacoai.main import main
     sys.exit(main())
 """
 

@@ -425,7 +425,7 @@ class TestInputOutputMultilineMode(unittest.TestCase):
 
     def test_ensure_hash_prefix(self):
         """Test that ensure_hash_prefix correctly adds # to valid hex colors"""
-        from aider.io import ensure_hash_prefix
+        from flacoai.io import ensure_hash_prefix
 
         # Test valid hex colors without #
         self.assertEqual(ensure_hash_prefix("000"), "#000")

@@ -117,11 +117,11 @@ def setup_git(git_root, io):
             pass
     elif cwd == Path.home():
         io.tool_warning(
-            "You should probably run aider in your project's directory, not your home dir."
+            "You should probably run flacoai in your project's directory, not your home dir."
         )
         return
     elif cwd and io.confirm_ask(
-        "No git repo found, create one to track aider's changes (recommended)?"
+        "No git repo found, create one to track flacoai's changes (recommended)?"
     ):
         git_root = str(cwd.resolve())
         repo = make_new_repo(git_root, io)
@@ -161,8 +161,8 @@ def check_gitignore(git_root, io, ask=True):
         repo = git.Repo(git_root)
         patterns_to_add = []
 
-        if not repo.ignored(".aider"):
-            patterns_to_add.append(".aider*")
+        if not repo.ignored(".flacoai"):
+            patterns_to_add.append(".flacoai*")
 
         env_path = Path(git_root) / ".env"
         if env_path.exists() and not repo.ignored(".env"):
@@ -210,7 +210,7 @@ def check_streamlit_install(io):
     return utils.check_pip_install_extra(
         io,
         "streamlit",
-        "You need to install the aider browser feature",
+        "You need to install the flacoai browser feature",
         ["aider-chat[browser]"],
     )
 
@@ -218,7 +218,7 @@ def check_streamlit_install(io):
 def write_streamlit_credentials():
     from streamlit.file_util import get_streamlit_file_path
 
-    # See https://github.com/Aider-AI/aider/issues/772
+    # See https://github.com/flacoai-AI/flacoai/issues/772
 
     credential_path = Path(get_streamlit_file_path()) / "credentials.toml"
     if not os.path.exists(credential_path):
@@ -234,7 +234,7 @@ def write_streamlit_credentials():
 def launch_gui(args):
     from streamlit.web import cli
 
-    from aider import gui
+    from flacoai import gui
 
     print()
     print("CONTROL-C to exit...")
@@ -252,7 +252,7 @@ def launch_gui(args):
         "--server.runOnSave=false",
     ]
 
-    # https://github.com/Aider-AI/aider/issues/2193
+    # https://github.com/flacoai-AI/flacoai/issues/2193
     is_dev = "-dev" in str(__version__)
 
     if is_dev:
@@ -335,7 +335,7 @@ def generate_search_path_list(default_file, git_root, command_line_file):
 
 def register_models(git_root, model_settings_fname, io, verbose=False):
     model_settings_files = generate_search_path_list(
-        ".aider.model.settings.yml", git_root, model_settings_fname
+        ".flacoai.model.settings.yml", git_root, model_settings_fname
     )
 
     try:
@@ -348,7 +348,7 @@ def register_models(git_root, model_settings_fname, io, verbose=False):
         elif verbose:
             io.tool_output("No model settings files loaded")
     except Exception as e:
-        io.tool_error(f"Error loading aider model settings: {e}")
+        io.tool_error(f"Error loading flacoai model settings: {e}")
         return 1
 
     if verbose:
@@ -368,7 +368,7 @@ def load_dotenv_files(git_root, dotenv_fname, encoding="utf-8"):
     )
 
     # Explicitly add the OAuth keys file to the beginning of the list
-    oauth_keys_file = Path.home() / ".aider" / "oauth-keys.env"
+    oauth_keys_file = Path.home() / ".flacoai" / "oauth-keys.env"
     if oauth_keys_file.exists():
         # Insert at the beginning so it's loaded first (and potentially overridden)
         dotenv_files.insert(0, str(oauth_keys_file.resolve()))
@@ -396,7 +396,7 @@ def register_litellm_models(git_root, model_metadata_fname, io, verbose=False):
     model_metadata_files.append(str(resource_metadata))
 
     model_metadata_files += generate_search_path_list(
-        ".aider.model.metadata.json", git_root, model_metadata_fname
+        ".flacoai.model.metadata.json", git_root, model_metadata_fname
     )
 
     try:
@@ -438,9 +438,9 @@ def sanity_check_repo(repo, io):
         bad_ver = True
 
     if bad_ver:
-        io.tool_error("Aider only works with git repos with version number 1 or 2.")
+        io.tool_error("aider only works with git repos with version number 1 or 2.")
         io.tool_output("You may be able to convert your repo: git update-index --index-version=2")
-        io.tool_output("Or run aider --no-git to proceed without using git.")
+        io.tool_output("Or run flacoai --no-git to proceed without using git.")
         io.offer_url(urls.git_index_version, "Open documentation url for more info?")
         return False
 
@@ -461,7 +461,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         if coder is None:
             return
         try:
-            from aider.activity_tracker import ActivityTracker
+            from flacoai.activity_tracker import ActivityTracker
 
             tracker = ActivityTracker()
             session_duration = time.time() - session_start_time
@@ -496,7 +496,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     else:
         git_root = get_git_root()
 
-    conf_fname = Path(".aider.conf.yml")
+    conf_fname = Path(".flacoai.conf.yml")
 
     default_config_files = []
     try:
@@ -677,12 +677,12 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     if args.analytics is not False:
         if analytics.need_to_ask(args.analytics):
             io.tool_output(
-                "Aider respects your privacy and never collects your code, chat messages, keys or"
+                "aider respects your privacy and never collects your code, chat messages, keys or"
                 " personal info."
             )
             io.tool_output(f"For more info: {urls.analytics}")
             disable = not io.confirm_ask(
-                "Allow collection of anonymous analytics to help improve aider?"
+                "Allow collection of anonymous analytics to help improve flacoai?"
             )
 
             analytics.asked_opt_in = True
@@ -942,7 +942,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
                 io,
                 fnames,
                 git_dname,
-                args.aiderignore,
+                args.flacoaiignore,
                 models=main_model.commit_message_models(),
                 attribute_author=args.attribute_author,
                 attribute_committer=args.attribute_committer,
@@ -1057,8 +1057,8 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
     ignores = []
     if git_root:
         ignores.append(str(Path(git_root) / ".gitignore"))
-    if args.aiderignore:
-        ignores.append(args.aiderignore)
+    if args.flacoaiignore:
+        ignores.append(args.flacoaiignore)
 
     if args.watch_files:
         file_watcher = FileWatcher(
@@ -1121,7 +1121,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             return
         coder.partial_response_content = content
         # For testing #2879
-        # from aider.coders.base_coder import all_fences
+        # from flacoai.coders.base_coder import all_fences
         # coder.fence = all_fences[1]
         coder.apply_updates()
         analytics.event("exit", reason="Applied updates")
@@ -1221,7 +1221,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
 def is_first_run_of_new_version(io, verbose=False):
     """Check if this is the first run of a new version/executable combination"""
-    installs_file = Path.home() / ".aider" / "installs.json"
+    installs_file = Path.home() / ".flacoai" / "installs.json"
     key = (__version__, sys.executable)
 
     # Never show notes for .dev versions
@@ -1273,7 +1273,7 @@ def check_and_load_imports(io, is_first_run, verbose=False):
                 load_slow_imports(swallow=False)
             except Exception as err:
                 io.tool_error(str(err))
-                io.tool_output("Error loading required imports. Did you install aider properly?")
+                io.tool_output("Error loading required imports. Did you install flacoai properly?")
                 io.offer_url(urls.install_properly, "Open documentation url for more info?")
                 sys.exit(1)
 

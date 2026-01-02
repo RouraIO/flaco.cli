@@ -66,7 +66,7 @@ class LiteLLMExceptions:
         for var in dir(litellm):
             if var.endswith("Error"):
                 if var not in self.exception_info:
-                    raise ValueError(f"{var} is in litellm but not in aider's exceptions list")
+                    raise ValueError(f"{var} is in litellm but not in flacoai's exceptions list")
 
         for var in self.exception_info:
             ex = getattr(litellm, var)

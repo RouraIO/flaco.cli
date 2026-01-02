@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to generate an SVG logo for Aider with embedded font.
+Script to generate an SVG logo for flacoai with embedded font.
 Reads the Glass_TTY_VT220.ttf font, subsets it to only include the letters needed,
 and creates an SVG with the word "aider" in terminal green (#14b014) on a transparent background.
 """

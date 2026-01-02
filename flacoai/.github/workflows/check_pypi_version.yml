@@ -1,8 +1,8 @@
 name: Check PyPI Version
 
-# Check to be sure `pip install aider-chat` installs the most recently published version.
+# Check to be sure `pip install flacoai-chat` installs the most recently published version.
 # If dependencies get yanked, it may render the latest version uninstallable.
-# See https://github.com/Aider-AI/aider/issues/3699 for example.
+# See https://github.com/flacoai-AI/flacoai/issues/3699 for example.
 
 on:
   schedule:
@@ -23,26 +23,26 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install aider-chat
-        run: pip install aider-chat
+      - name: Install flacoai-chat
+        run: pip install flacoai-chat
 
-      - name: Get installed aider version
+      - name: Get installed flacoai version
         id: installed_version
         run: |
           set -x # Enable debugging output
-          aider_version_output=$(aider --version)
+          flacoai_version_output=$(flacoai --version)
           if [ $? -ne 0 ]; then
-            echo "Error: 'aider --version' command failed."
+            echo "Error: 'flacoai --version' command failed."
             exit 1
           fi
-          echo "Raw aider --version output: $aider_version_output"
+          echo "Raw flacoai --version output: $flacoai_version_output"
 
           # Extract version number (format X.Y.Z)
-          version_num=$(echo "$aider_version_output" | grep -oP '\d+\.\d+\.\d+')
+          version_num=$(echo "$flacoai_version_output" | grep -oP '\d+\.\d+\.\d+')
 
           # Check if grep found anything
           if [ -z "$version_num" ]; then
-            echo "Error: Could not extract version number using grep -oP '\d+\.\d+\.\d+' from output: $aider_version_output"
+            echo "Error: Could not extract version number using grep -oP '\d+\.\d+\.\d+' from output: $flacoai_version_output"
             exit 1
           fi
 
@@ -80,7 +80,7 @@ jobs:
           echo "Installed version: ${{ steps.installed_version.outputs.version }}"
           echo "Latest tag version: ${{ steps.latest_tag.outputs.tag }}"
           if [ "${{ steps.installed_version.outputs.version }}" != "${{ steps.latest_tag.outputs.tag }}" ]; then
-            echo "Error: Installed aider version (${{ steps.installed_version.outputs.version }}) does not match the latest tag (${{ steps.latest_tag.outputs.tag }})."
+            echo "Error: Installed flacoai version (${{ steps.installed_version.outputs.version }}) does not match the latest tag (${{ steps.latest_tag.outputs.tag }})."
             exit 1
           fi
           echo "Versions match."

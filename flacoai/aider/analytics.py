@@ -136,7 +136,7 @@ class Analytics:
 
     def get_data_file_path(self):
         try:
-            data_file = Path.home() / ".aider" / "analytics.json"
+            data_file = Path.home() / ".flacoai" / "analytics.json"
             data_file.parent.mkdir(parents=True, exist_ok=True)
             return data_file
         except OSError:
@@ -207,7 +207,7 @@ class Analytics:
         """disable posthog if we get an error"""
         print("X" * 100)
         # https://github.com/PostHog/posthog-python/blob/9e1bb8c58afaa229da24c4fb576c08bb88a75752/posthog/consumer.py#L86
-        # https://github.com/Aider-AI/aider/issues/2532
+        # https://github.com/flacoai-AI/flacoai/issues/2532
         self.ph = None
 
     def event(self, event_name, main_model=None, **kwargs):

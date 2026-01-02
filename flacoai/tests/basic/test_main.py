@@ -22,13 +22,13 @@ class TestMain(TestCase):
     def setUp(self):
         self.original_env = os.environ.copy()
         os.environ["OPENAI_API_KEY"] = "deadbeef"
-        os.environ["AIDER_CHECK_UPDATE"] = "false"
-        os.environ["AIDER_ANALYTICS"] = "false"
+        os.environ["aider_CHECK_UPDATE"] = "false"
+        os.environ["aider_ANALYTICS"] = "false"
         self.original_cwd = os.getcwd()
         self.tempdir_obj = IgnorantTemporaryDirectory()
         self.tempdir = self.tempdir_obj.name
         os.chdir(self.tempdir)
-        # Fake home directory prevents tests from using the real ~/.aider.conf.yml file:
+        # Fake home directory prevents tests from using the real ~/.flacoai.conf.yml file:
         self.homedir_obj = IgnorantTemporaryDirectory()
         os.environ["HOME"] = self.homedir_obj.name
         self.input_patcher = patch("builtins.input", return_value=None)
@@ -88,13 +88,13 @@ class TestMain(TestCase):
     def test_main_with_git_config_yml(self):
         make_repo()
 
-        Path(".aider.conf.yml").write_text("auto-commits: false\n")
+        Path(".flacoai.conf.yml").write_text("auto-commits: false\n")
         with patch("aider.coders.Coder.create") as MockCoder:
             main(["--yes"], input=DummyInput(), output=DummyOutput())
             _, kwargs = MockCoder.call_args
             assert kwargs["auto_commits"] is False
 
-        Path(".aider.conf.yml").write_text("auto-commits: true\n")
+        Path(".flacoai.conf.yml").write_text("auto-commits: true\n")
         with patch("aider.coders.Coder.create") as MockCoder:
             main([], input=DummyInput(), output=DummyOutput())
             _, kwargs = MockCoder.call_args
@@ -111,7 +111,7 @@ class TestMain(TestCase):
 
         # This will throw a git error on windows if get_tracked_files doesn't
         # properly convert git/posix/paths to git\posix\paths.
-        # Because aider will try and `git add` a file that's already in the repo.
+        # Because flacoai will try and `git add` a file that's already in the repo.
         main(["--yes", str(fname), "--exit"], input=DummyInput(), output=DummyOutput())
 
     def test_setup_git(self):
@@ -124,7 +124,7 @@ class TestMain(TestCase):
 
         gitignore = Path.cwd() / ".gitignore"
         self.assertTrue(gitignore.exists())
-        self.assertEqual(".aider*", gitignore.read_text().splitlines()[0])
+        self.assertEqual(".flacoai*", gitignore.read_text().splitlines()[0])
 
     def test_check_gitignore(self):
         with GitTemporaryDirectory():
@@ -138,18 +138,18 @@ class TestMain(TestCase):
             check_gitignore(cwd, io)
             self.assertTrue(gitignore.exists())
 
-            self.assertEqual(".aider*", gitignore.read_text().splitlines()[0])
+            self.assertEqual(".flacoai*", gitignore.read_text().splitlines()[0])
 
             # Test without .env file present
             gitignore.write_text("one\ntwo\n")
             check_gitignore(cwd, io)
-            self.assertEqual("one\ntwo\n.aider*\n", gitignore.read_text())
+            self.assertEqual("one\ntwo\n.flacoai*\n", gitignore.read_text())
 
             # Test with .env file present
             env_file = cwd / ".env"
             env_file.touch()
             check_gitignore(cwd, io)
-            self.assertEqual("one\ntwo\n.aider*\n.env\n", gitignore.read_text())
+            self.assertEqual("one\ntwo\n.flacoai*\n.env\n", gitignore.read_text())
             del os.environ["GIT_CONFIG_GLOBAL"]
 
     def test_command_line_gitignore_files_flag(self):
@@ -419,7 +419,7 @@ class TestMain(TestCase):
         return env_file_path
 
     def test_env_file_flag_sets_automatic_variable(self):
-        env_file_path = self.create_env_file(".env.test", "AIDER_DARK_MODE=True")
+        env_file_path = self.create_env_file(".env.test", "aider_DARK_MODE=True")
         with patch("aider.main.InputOutput") as MockInputOutput:
             MockInputOutput.return_value.get_input.return_value = None
             MockInputOutput.return_value.get_input.confirm_ask = True
@@ -434,7 +434,7 @@ class TestMain(TestCase):
             self.assertEqual(kwargs["code_theme"], "monokai")
 
     def test_default_env_file_sets_automatic_variable(self):
-        self.create_env_file(".env", "AIDER_DARK_MODE=True")
+        self.create_env_file(".env", "aider_DARK_MODE=True")
         with patch("aider.main.InputOutput") as MockInputOutput:
             MockInputOutput.return_value.get_input.return_value = None
             MockInputOutput.return_value.get_input.confirm_ask = True
@@ -446,7 +446,7 @@ class TestMain(TestCase):
             self.assertEqual(kwargs["code_theme"], "monokai")
 
     def test_false_vals_in_env_file(self):
-        self.create_env_file(".env", "AIDER_SHOW_DIFFS=off")
+        self.create_env_file(".env", "aider_SHOW_DIFFS=off")
         with patch("aider.coders.Coder.create") as MockCoder:
             main(["--no-git", "--yes"], input=DummyInput(), output=DummyOutput())
             MockCoder.assert_called_once()
@@ -454,7 +454,7 @@ class TestMain(TestCase):
             self.assertEqual(kwargs["show_diffs"], False)
 
     def test_true_vals_in_env_file(self):
-        self.create_env_file(".env", "AIDER_SHOW_DIFFS=on")
+        self.create_env_file(".env", "aider_SHOW_DIFFS=on")
         with patch("aider.coders.Coder.create") as MockCoder:
             main(["--no-git", "--yes"], input=DummyInput(), output=DummyOutput())
             MockCoder.assert_called_once()
@@ -495,7 +495,7 @@ class TestMain(TestCase):
                 self.assertFalse(called_arg.endswith(f"subdir{os.path.sep}dirty_file.py"))
 
     def test_verbose_mode_lists_env_vars(self):
-        self.create_env_file(".env", "AIDER_DARK_MODE=on")
+        self.create_env_file(".env", "aider_DARK_MODE=on")
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             main(
                 ["--no-git", "--verbose", "--exit", "--yes"],
@@ -506,11 +506,11 @@ class TestMain(TestCase):
             relevant_output = "\n".join(
                 line
                 for line in output.splitlines()
-                if "AIDER_DARK_MODE" in line or "dark_mode" in line
+                if "aider_DARK_MODE" in line or "dark_mode" in line
             )  # this bit just helps failing assertions to be easier to read
-            self.assertIn("AIDER_DARK_MODE", relevant_output)
+            self.assertIn("aider_DARK_MODE", relevant_output)
             self.assertIn("dark_mode", relevant_output)
-            self.assertRegex(relevant_output, r"AIDER_DARK_MODE:\s+on")
+            self.assertRegex(relevant_output, r"aider_DARK_MODE:\s+on")
             self.assertRegex(relevant_output, r"dark_mode:\s+True")
 
     def test_yaml_config_file_loading(self):
@@ -527,11 +527,11 @@ class TestMain(TestCase):
             cwd.mkdir()
             os.chdir(cwd)
 
-            # Create .aider.conf.yml files in different locations
-            home_config = fake_home / ".aider.conf.yml"
-            git_config = git_dir / ".aider.conf.yml"
-            cwd_config = cwd / ".aider.conf.yml"
-            named_config = git_dir / "named.aider.conf.yml"
+            # Create .flacoai.conf.yml files in different locations
+            home_config = fake_home / ".flacoai.conf.yml"
+            git_config = git_dir / ".flacoai.conf.yml"
+            cwd_config = cwd / ".flacoai.conf.yml"
+            named_config = git_dir / "named.flacoai.conf.yml"
 
             cwd_config.write_text("model: gpt-4-32k\nmap-tokens: 4096\n")
             git_config.write_text("model: gpt-4\nmap-tokens: 2048\n")
@@ -631,16 +631,16 @@ class TestMain(TestCase):
 
     def test_model_metadata_file(self):
         # Re-init so we don't have old data lying around from earlier test cases
-        from aider import models
+        from flacoai import models
 
         models.model_info_manager = models.ModelInfoManager()
 
-        from aider.llm import litellm
+        from flacoai.llm import litellm
 
         litellm._lazy_module = None
 
         with GitTemporaryDirectory():
-            metadata_file = Path(".aider.model.metadata.json")
+            metadata_file = Path(".flacoai.model.metadata.json")
 
             # must be a fully qualified model name: provider/...
             metadata_content = {"deepseek/deepseek-chat": {"max_input_tokens": 1234}}
@@ -904,7 +904,7 @@ class TestMain(TestCase):
 
     def test_pytest_env_vars(self):
         # Verify that environment variables from pytest.ini are properly set
-        self.assertEqual(os.environ.get("AIDER_ANALYTICS"), "false")
+        self.assertEqual(os.environ.get("aider_ANALYTICS"), "false")
 
     def test_set_env_single(self):
         # Test setting a single environment variable
@@ -960,7 +960,7 @@ class TestMain(TestCase):
             self.assertEqual(result, 1)
 
     def test_git_config_include(self):
-        # Test that aider respects git config includes for user.name and user.email
+        # Test that flacoai respects git config includes for user.name and user.email
         with GitTemporaryDirectory() as git_dir:
             git_dir = Path(git_dir)
 
@@ -983,7 +983,7 @@ class TestMain(TestCase):
             git_config_path = git_dir / ".git" / "config"
             git_config_content = git_config_path.read_text()
 
-            # Run aider and verify it doesn't change the git config
+            # Run flacoai and verify it doesn't change the git config
             main(["--yes", "--exit"], input=DummyInput(), output=DummyOutput())
 
             # Check that the user settings are still the same using git command
@@ -996,7 +996,7 @@ class TestMain(TestCase):
             self.assertEqual(git_config_content, git_config_content_after)
 
     def test_git_config_include_directive(self):
-        # Test that aider respects the include directive in git config
+        # Test that flacoai respects the include directive in git config
         with GitTemporaryDirectory() as git_dir:
             git_dir = Path(git_dir)
 
@@ -1024,36 +1024,36 @@ class TestMain(TestCase):
             self.assertEqual(repo.git.config("user.name"), "Directive User")
             self.assertEqual(repo.git.config("user.email"), "directive@example.com")
 
-            # Run aider and verify it doesn't change the git config
+            # Run flacoai and verify it doesn't change the git config
             main(["--yes", "--exit"], input=DummyInput(), output=DummyOutput())
 
             # Check that the git config file wasn't modified
-            config_after_aider = git_config.read_text()
-            self.assertEqual(modified_config_content, config_after_aider)
+            config_after_flacoai = git_config.read_text()
+            self.assertEqual(modified_config_content, config_after_flacoai)
 
             # Check that the user settings are still the same using git command
             repo = git.Repo(git_dir)  # Re-open repo to ensure we get fresh config
             self.assertEqual(repo.git.config("user.name"), "Directive User")
             self.assertEqual(repo.git.config("user.email"), "directive@example.com")
 
-    def test_resolve_aiderignore_path(self):
+    def test_resolve_flacoaiignore_path(self):
         # Import the function directly to test it
-        from aider.args import resolve_aiderignore_path
+        from flacoai.args import resolve_flacoaiignore_path
 
         # Test with absolute path
-        abs_path = os.path.abspath("/tmp/test/.aiderignore")
-        self.assertEqual(resolve_aiderignore_path(abs_path), abs_path)
+        abs_path = os.path.abspath("/tmp/test/.flacoaiignore")
+        self.assertEqual(resolve_flacoaiignore_path(abs_path), abs_path)
 
         # Test with relative path and git root
         git_root = "/path/to/git/root"
-        rel_path = ".aiderignore"
+        rel_path = ".flacoaiignore"
         self.assertEqual(
-            resolve_aiderignore_path(rel_path, git_root), str(Path(git_root) / rel_path)
+            resolve_flacoaiignore_path(rel_path, git_root), str(Path(git_root) / rel_path)
         )
 
         # Test with relative path and no git root
-        rel_path = ".aiderignore"
-        self.assertEqual(resolve_aiderignore_path(rel_path), rel_path)
+        rel_path = ".flacoaiignore"
+        self.assertEqual(resolve_flacoaiignore_path(rel_path), rel_path)
 
     def test_invalid_edit_format(self):
         with GitTemporaryDirectory():
@@ -1190,7 +1190,7 @@ class TestMain(TestCase):
         # Test that models from model-metadata.json appear in list-models output
         with GitTemporaryDirectory():
             # Create a temporary model-metadata.json with test models
-            metadata_file = Path(".aider.model.metadata.json")
+            metadata_file = Path(".flacoai.model.metadata.json")
             test_models = {
                 "unique-model-name": {
                     "max_input_tokens": 8192,
@@ -1229,7 +1229,7 @@ class TestMain(TestCase):
         # appear in list-models
         with GitTemporaryDirectory():
             # Create a temporary model-metadata.json with test models
-            metadata_file = Path(".aider.model.metadata.json")
+            metadata_file = Path(".flacoai.model.metadata.json")
             test_models = {
                 "metadata-only-model": {
                     "max_input_tokens": 8192,
@@ -1415,14 +1415,14 @@ class TestMain(TestCase):
         with GitTemporaryDirectory() as git_dir:
             git_dir = Path(git_dir)
 
-            # Create fake home and .aider directory
+            # Create fake home and .flacoai directory
             fake_home = git_dir / "fake_home"
             fake_home.mkdir()
-            aider_dir = fake_home / ".aider"
-            aider_dir.mkdir()
+            flacoai_dir = fake_home / ".flacoai"
+            flacoai_dir.mkdir()
 
             # Create oauth keys file
-            oauth_keys_file = aider_dir / "oauth-keys.env"
+            oauth_keys_file = flacoai_dir / "oauth-keys.env"
             oauth_keys_file.write_text("OAUTH_VAR=oauth_val\nSHARED_VAR=oauth_shared\n")
 
             # Create git root .env file

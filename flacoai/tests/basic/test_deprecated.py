@@ -14,8 +14,8 @@ class TestDeprecated(TestCase):
     def setUp(self):
         self.original_env = os.environ.copy()
         os.environ["OPENAI_API_KEY"] = "deadbeef"
-        os.environ["AIDER_CHECK_UPDATE"] = "false"
-        os.environ["AIDER_ANALYTICS"] = "false"
+        os.environ["aider_CHECK_UPDATE"] = "false"
+        os.environ["aider_ANALYTICS"] = "false"
 
     def tearDown(self):
         os.environ.clear()

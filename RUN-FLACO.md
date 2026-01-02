@@ -18,12 +18,12 @@ When you run `./run-flaco.sh`, you'll see this beautiful startup screen:
 ```
 ╔═══════════════════════════════════════════════════════════════════════════╗
 ║                                                                           ║
-║   ███████╗██╗      █████╗  ██████╗ ██████╗      █████╗ ██╗               ║
-║   ██╔════╝██║     ██╔══██╗██╔════╝██╔═══██╗    ██╔══██╗██║               ║
-║   █████╗  ██║     ███████║██║     ██║   ██║    ███████║██║               ║
-║   ██╔══╝  ██║     ██╔══██║██║     ██║   ██║    ██╔══██║██║               ║
-║   ██║     ███████╗██║  ██║╚██████╗╚██████╔╝    ██║  ██║██║               ║
-║   ╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝     ╚═╝  ╚═╝╚═╝               ║
+║   ███████╗██╗      █████╗  ██████╗ ██████╗      █████╗ ██╗                ║
+║   ██╔════╝██║     ██╔══██╗██╔════╝██╔═══██╗    ██╔══██╗██║                ║
+║   █████╗  ██║     ███████║██║     ██║   ██║    ███████║██║                ║
+║   ██╔══╝  ██║     ██╔══██║██║     ██║   ██║    ██╔══██║██║                ║
+║   ██║     ███████╗██║  ██║╚██████╗╚██████╔╝    ██║  ██║██║                ║
+║   ╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═════╝     ╚═╝  ╚═╝╚═╝                ║
 ║                                                                           ║
 ║              🚀 The Ultimate AI-Powered Development Assistant             ║
 ║                                                                           ║
@@ -190,7 +190,7 @@ The script sets PYTHONPATH automatically. If you still get errors:
 ```bash
 cd /Users/roura.io/Documents/dev.local/flaco/flacoai
 source ../venv/bin/activate
-python -c "from aider import branding; print('OK')"
+python -c "from flacoai import branding; print('OK')"
 ```
 
 ### Issue: Still seeing old header
@@ -202,7 +202,7 @@ Make sure you're running the NEW script:
 /Users/roura.io/Documents/dev.local/flaco/run-flaco.sh
 
 # NOT the old way:
-# python -m aider  ← This might run old version
+# python -m flacoai  ← This might run old version
 ```
 
 ### Issue: Command not found errors
@@ -221,18 +221,18 @@ pip install rich jira beautifulsoup4 gitpython
 Here's a summary of all the new files and modifications:
 
 ### New Files Created:
-1. `flacoai/aider/branding.py` - Beautiful FlacoAI header & tips
-2. `flacoai/aider/activity_tracker.py` - Session activity tracking
-3. `flacoai/aider/analyzers/` - Code review system (7 files)
-4. `flacoai/aider/integrations/` - Jira integration (3 files)
-5. `flacoai/aider/coders/review_coder.py` - Review orchestrator
-6. `flacoai/aider/report_generator.py` - Report formatting
+1. `flacoai/flacoai/branding.py` - Beautiful FlacoAI header & tips
+2. `flacoai/flacoai/activity_tracker.py` - Session activity tracking
+3. `flacoai/flacoai/analyzers/` - Code review system (7 files)
+4. `flacoai/flacoai/integrations/` - Jira integration (3 files)
+5. `flacoai/flacoai/coders/review_coder.py` - Review orchestrator
+6. `flacoai/flacoai/report_generator.py` - Report formatting
 
 ### Modified Files:
-1. `flacoai/aider/coders/base_coder.py` - Integrated branding in startup
-2. `flacoai/aider/commands.py` - Added /review and /jira commands
-3. `flacoai/aider/main.py` - Added activity tracking
-4. `flacoai/aider/args.py` - Added branding arguments
+1. `flacoai/flacoai/coders/base_coder.py` - Integrated branding in startup
+2. `flacoai/flacoai/commands.py` - Added /review and /jira commands
+3. `flacoai/flacoai/main.py` - Added activity tracking
+4. `flacoai/flacoai/args.py` - Added branding arguments
 5. `flacoai/requirements.txt` - Added jira dependency
 
 ---

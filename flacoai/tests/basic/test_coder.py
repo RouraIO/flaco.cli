@@ -797,7 +797,7 @@ two
             diff = saved_diffs[0]
             self.assertIn("file.txt", diff)
 
-    def test_skip_aiderignored_files(self):
+    def test_skip_flacoaiignored_files(self):
         with GitTemporaryDirectory():
             repo = git.Repo()
 
@@ -813,13 +813,13 @@ two
 
             fnames = [fname1, fname2, fname3]
 
-            aignore = Path(".aiderignore")
+            aignore = Path(".flacoaiignore")
             aignore.write_text(f"{fname1}\n{fname2}\ndir\n")
             repo = GitRepo(
                 io,
                 fnames,
                 None,
-                aider_ignore_file=str(aignore),
+                flacoai_ignore_file=str(aignore),
             )
 
             coder = Coder.create(
@@ -1334,7 +1334,7 @@ This command will print 'Hello, World!' to the console."""
 
             # Create an ArchitectCoder with auto_accept_architect=True
             with patch("aider.coders.architect_coder.AskCoder.__init__", return_value=None):
-                from aider.coders.architect_coder import ArchitectCoder
+                from flacoai.coders.architect_coder import ArchitectCoder
 
                 coder = ArchitectCoder()
                 coder.io = io
@@ -1369,7 +1369,7 @@ This command will print 'Hello, World!' to the console."""
 
             # Create an ArchitectCoder with auto_accept_architect=False
             with patch("aider.coders.architect_coder.AskCoder.__init__", return_value=None):
-                from aider.coders.architect_coder import ArchitectCoder
+                from flacoai.coders.architect_coder import ArchitectCoder
 
                 coder = ArchitectCoder()
                 coder.io = io
@@ -1408,7 +1408,7 @@ This command will print 'Hello, World!' to the console."""
 
             # Create an ArchitectCoder with auto_accept_architect=False
             with patch("aider.coders.architect_coder.AskCoder.__init__", return_value=None):
-                from aider.coders.architect_coder import ArchitectCoder
+                from flacoai.coders.architect_coder import ArchitectCoder
 
                 coder = ArchitectCoder()
                 coder.io = io

@@ -18,9 +18,9 @@ class DotEnvFormatter(argparse.HelpFormatter):
     def _format_text(self, text):
         return f"""
 ##########################################################
-# Sample aider .env file.
+# Sample flacoai .env file.
 # Place at the root of your git repo.
-# Or use `aider --env <fname>` to specify.
+# Or use `flacoai --env <fname>` to specify.
 ##########################################################
 
 #################
@@ -91,14 +91,14 @@ class YamlHelpFormatter(argparse.HelpFormatter):
     def _format_text(self, text):
         return """
 ##########################################################
-# Sample .aider.conf.yml
+# Sample .flacoai.conf.yml
 # This file lists *all* the valid configuration entries.
 # Place in your home dir, or at the root of your git repo.
 ##########################################################
 
 # Note: You can only put OpenAI and Anthropic API keys in the YAML
 # config file. Keys for all APIs can be stored in a .env file
-# https://aider.chat/docs/config/dotenv.html
+# https://flacoai.chat/docs/config/dotenv.html
 
 """
 

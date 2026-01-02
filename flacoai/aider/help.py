@@ -78,7 +78,7 @@ def fname_to_url(filepath):
     # Ensure the URL starts and ends with '/'
     url_path = url_path.strip("/")
 
-    return f"https://aider.chat/{url_path}"
+    return f"https://flacoai.chat/{url_path}"
 
 
 def get_index():
@@ -90,7 +90,7 @@ def get_index():
     )
     from llama_index.core.node_parser import MarkdownNodeParser
 
-    dname = Path.home() / ".aider" / "caches" / ("help." + __version__)
+    dname = Path.home() / ".flacoai" / "caches" / ("help." + __version__)
 
     index = None
     try:

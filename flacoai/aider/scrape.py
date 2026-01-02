@@ -8,7 +8,7 @@ import pypandoc
 from aider import __version__, urls, utils
 from aider.dump import dump  # noqa: F401
 
-aider_user_agent = f"Aider/{__version__} +{urls.website}"
+flacoai_user_agent = f"aider/{__version__} +{urls.website}"
 
 # Playwright is nice because it has a simple way to install dependencies on most
 # platforms.
@@ -161,7 +161,7 @@ class Scraper:
                 user_agent = page.evaluate("navigator.userAgent")
                 user_agent = user_agent.replace("Headless", "")
                 user_agent = user_agent.replace("headless", "")
-                user_agent += " " + aider_user_agent
+                user_agent += " " + flacoai_user_agent
 
                 page.set_extra_http_headers({"User-Agent": user_agent})
 
@@ -194,7 +194,7 @@ class Scraper:
     def scrape_with_httpx(self, url):
         import httpx
 
-        headers = {"User-Agent": f"Mozilla./5.0 ({aider_user_agent})"}
+        headers = {"User-Agent": f"Mozilla./5.0 ({flacoai_user_agent})"}
         try:
             with httpx.Client(
                 headers=headers, verify=self.verify_ssl, follow_redirects=True

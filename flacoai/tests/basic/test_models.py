@@ -14,13 +14,13 @@ from aider.models import (
 class TestModels(unittest.TestCase):
     def setUp(self):
         """Reset MODEL_SETTINGS before each test"""
-        from aider.models import MODEL_SETTINGS
+        from flacoai.models import MODEL_SETTINGS
 
         self._original_settings = MODEL_SETTINGS.copy()
 
     def tearDown(self):
         """Restore original MODEL_SETTINGS after each test"""
-        from aider.models import MODEL_SETTINGS
+        from flacoai.models import MODEL_SETTINGS
 
         MODEL_SETTINGS.clear()
         MODEL_SETTINGS.extend(self._original_settings)
@@ -208,12 +208,12 @@ class TestModels(unittest.TestCase):
     @patch("aider.models.check_pip_install_extra")
     def test_check_for_dependencies_bedrock(self, mock_check_pip):
         """Test that check_for_dependencies calls check_pip_install_extra for Bedrock models"""
-        from aider.io import InputOutput
+        from flacoai.io import InputOutput
 
         io = InputOutput()
 
         # Test with a Bedrock model
-        from aider.models import check_for_dependencies
+        from flacoai.models import check_for_dependencies
 
         check_for_dependencies(io, "bedrock/anthropic.claude-3-sonnet-20240229-v1:0")
 
@@ -225,12 +225,12 @@ class TestModels(unittest.TestCase):
     @patch("aider.models.check_pip_install_extra")
     def test_check_for_dependencies_vertex_ai(self, mock_check_pip):
         """Test that check_for_dependencies calls check_pip_install_extra for Vertex AI models"""
-        from aider.io import InputOutput
+        from flacoai.io import InputOutput
 
         io = InputOutput()
 
         # Test with a Vertex AI model
-        from aider.models import check_for_dependencies
+        from flacoai.models import check_for_dependencies
 
         check_for_dependencies(io, "vertex_ai/gemini-1.5-pro")
 
@@ -245,12 +245,12 @@ class TestModels(unittest.TestCase):
     @patch("aider.models.check_pip_install_extra")
     def test_check_for_dependencies_other_model(self, mock_check_pip):
         """Test that check_for_dependencies doesn't call check_pip_install_extra for other models"""
-        from aider.io import InputOutput
+        from flacoai.io import InputOutput
 
         io = InputOutput()
 
         # Test with a non-Bedrock, non-Vertex AI model
-        from aider.models import check_for_dependencies
+        from flacoai.models import check_for_dependencies
 
         check_for_dependencies(io, "gpt-4")
 
@@ -374,7 +374,7 @@ class TestModels(unittest.TestCase):
         self.assertEqual(model.editor_edit_format, "editor-diff")
         self.assertTrue(model.use_repo_map)
 
-    def test_aider_extra_model_settings(self):
+    def test_flacoai_extra_model_settings(self):
         import tempfile
 
         import yaml

@@ -13,10 +13,10 @@ class ActivityTracker:
         """Initialize activity tracker.
 
         Args:
-            cache_dir: Directory for cache files (defaults to ~/.aider/cache)
+            cache_dir: Directory for cache files (defaults to ~/.flacoai/cache)
         """
         if cache_dir is None:
-            cache_dir = Path.home() / ".aider" / "cache"
+            cache_dir = Path.home() / ".flacoai" / "cache"
 
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)

@@ -19,7 +19,7 @@ def test_gitignore_patterns():
     """Test that gitignore patterns are properly loaded and matched"""
     from pathlib import Path
 
-    from aider.watch import load_gitignores
+    from flacoai.watch import load_gitignores
 
     # Create a temporary gitignore file with test patterns
     tmp_gitignore = Path("test.gitignore")
@@ -29,7 +29,7 @@ def test_gitignore_patterns():
     spec = load_gitignores(gitignores)
 
     # Test built-in patterns
-    assert spec.match_file(".aider.conf")
+    assert spec.match_file(".flacoai.conf")
     assert spec.match_file(".git/config")
     assert spec.match_file("file~")  # Emacs/vim backup
     assert spec.match_file("file.bak")

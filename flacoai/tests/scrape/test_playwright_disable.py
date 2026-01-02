@@ -56,7 +56,7 @@ def test_commands_web_disable_playwright(monkeypatch):
     """
     Test that Commands.cmd_web does not emit a misleading warning when --disable-playwright is set.
     """
-    from aider.commands import Commands
+    from flacoai.commands import Commands
 
     # Dummy IO to capture outputs and warnings
     class DummyIO:

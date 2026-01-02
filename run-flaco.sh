@@ -14,6 +14,6 @@ export PYTHONPATH="$SCRIPT_DIR/flacoai:$PYTHONPATH"
 # Set version for setuptools-scm
 export SETUPTOOLS_SCM_PRETEND_VERSION=0.86.1
 
-# Run aider
+# Run flacoai
 cd "$SCRIPT_DIR/flacoai"
-python -m aider "$@"
+python -m flacoai "$@"
