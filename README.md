@@ -65,15 +65,24 @@ Comprehensive review system:
 
 ## 🚀 Quick Start
 
+### Requirements
+
+- **Python 3.10 - 3.14** (Python 3.14 recommended)
+- macOS or Linux
+- Git
+
 ### Installation
 
 ```bash
+# Verify Python version (3.10-3.14 required)
+python3 --version
+
 # Clone the repository
 git clone git@github.com:RouraIO/flaco.cli.git flaco
 cd flaco
 
 # Run the installer
-./scripts/install_flaco.sh
+python3 scripts/install_flaco.py
 
 # Reload your shell
 source ~/.zshrc  # or open a new terminal
