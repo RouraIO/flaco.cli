@@ -461,7 +461,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
         if coder is None:
             return
         try:
-            from flacoai.activity_tracker import ActivityTracker
+            from aider.activity_tracker import ActivityTracker
 
             tracker = ActivityTracker()
             session_duration = time.time() - session_start_time
@@ -1121,7 +1121,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             return
         coder.partial_response_content = content
         # For testing #2879
-        # from flacoai.coders.base_coder import all_fences
+        # from aider.coders.base_coder import all_fences
         # coder.fence = all_fences[1]
         coder.apply_updates()
         analytics.event("exit", reason="Applied updates")

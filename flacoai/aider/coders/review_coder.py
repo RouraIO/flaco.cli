@@ -30,7 +30,7 @@ class ReviewCoder(AskCoder):
         Returns:
             Combined AnalysisReport
         """
-        from flacoai.analyzers import (
+        from aider.analyzers import (
             SecurityAnalyzer,
             PerformanceAnalyzer,
             QualityAnalyzer,
@@ -102,8 +102,8 @@ class ReviewCoder(AskCoder):
         Returns:
             List of created issue keys
         """
-        from flacoai.integrations.jira_client import JiraClient
-        from flacoai.analyzers import Severity
+        from aider.integrations.jira_client import JiraClient
+        from aider.analyzers import Severity
 
         client = JiraClient.from_config(self.io)
         if not client:

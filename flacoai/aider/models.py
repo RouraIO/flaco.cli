@@ -1002,7 +1002,7 @@ class Model(ModelSettings):
         return hash_object, res
 
     def simple_send_with_retries(self, messages):
-        from flacoai.exceptions import LiteLLMExceptions
+        from aider.exceptions import LiteLLMExceptions
 
         litellm_ex = LiteLLMExceptions()
         if "deepseek-reasoner" in self.name:
@@ -1024,7 +1024,7 @@ class Model(ModelSettings):
                 if not response or not hasattr(response, "choices") or not response.choices:
                     return None
                 res = response.choices[0].message.content
-                from flacoai.reasoning_tags import remove_reasoning_content
+                from aider.reasoning_tags import remove_reasoning_content
 
                 return remove_reasoning_content(res, self.reasoning_tag)
 

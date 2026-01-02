@@ -4,7 +4,7 @@ __version__ = "1.5.0"
 safe_version = __version__
 
 try:
-    from flacoai._version import __version__
+    from aider._version import __version__
 except Exception:
     __version__ = safe_version + "+import"
 

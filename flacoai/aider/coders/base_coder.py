@@ -205,14 +205,14 @@ class Coder:
         return new_coder
 
     def get_announcements(self):
-        from flacoai.branding import (
+        from aider.branding import (
             FLACO_ASCII_ART,
             get_welcome_message,
             get_random_tip,
             get_session_info,
             format_session_header
         )
-        from flacoai.activity_tracker import ActivityTracker
+        from aider.activity_tracker import ActivityTracker
 
         lines = []
 

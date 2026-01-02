@@ -1122,7 +1122,7 @@ class Commands:
             return
 
         self.coder.event("interactive help")
-        from flacoai.coders.base_coder import Coder
+        from aider.coders.base_coder import Coder
 
         if not self.help:
             res = install_help_extra(self.io)
@@ -1198,7 +1198,7 @@ class Commands:
             # Switch to the corresponding chat mode if no args provided
             return self.cmd_chat_mode(edit_format)
 
-        from flacoai.coders.base_coder import Coder
+        from aider.coders.base_coder import Coder
 
         coder = Coder.create(
             io=self.io,
@@ -1432,8 +1432,8 @@ class Commands:
         """
         self._track_command("review")
 
-        from flacoai.coders.review_coder import ReviewCoder
-        from flacoai.report_generator import ReviewReportGenerator
+        from aider.coders.review_coder import ReviewCoder
+        from aider.report_generator import ReviewReportGenerator
         import os
         from pathlib import Path
 
@@ -1610,8 +1610,8 @@ class Commands:
         """
         self._track_command("jira")
 
-        from flacoai.integrations.jira_client import JiraClient
-        from flacoai.integrations.jira_formatter import JiraFormatter
+        from aider.integrations.jira_client import JiraClient
+        from aider.integrations.jira_formatter import JiraFormatter
 
         # Parse subcommand
         args_parts = args.strip().split(maxsplit=1) if args.strip() else []
@@ -1833,7 +1833,7 @@ class Commands:
             return
 
         # Filter by severity (only high and critical)
-        from flacoai.analyzers import Severity
+        from aider.analyzers import Severity
 
         high_severity = [r for r in results if r.severity in [Severity.HIGH, Severity.CRITICAL]]
 
@@ -1976,7 +1976,7 @@ Focus on Swift/iOS best practices."""
         """
         self._track_command("init")
 
-        from flacoai.project_memory import init_project_memory
+        from aider.project_memory import init_project_memory
 
         force = "--force" in args if args else False
 
@@ -2010,7 +2010,7 @@ Focus on Swift/iOS best practices."""
         """
         self._track_command("memory")
 
-        from flacoai.project_memory import init_project_memory, add_memory_note, ProjectScanner
+        from aider.project_memory import init_project_memory, add_memory_note, ProjectScanner
         from pathlib import Path
 
         # Parse subcommand
@@ -2131,7 +2131,7 @@ Focus on Swift/iOS best practices."""
 
     def _llm_list(self, category=None):
         """List available models."""
-        from flacoai.models import MODEL_ALIASES, MODEL_SETTINGS
+        from aider.models import MODEL_ALIASES, MODEL_SETTINGS
 
         self.io.tool_output("\n" + "="*75)
         self.io.tool_output("🤖 Available Models")
@@ -2192,7 +2192,7 @@ Focus on Swift/iOS best practices."""
 
     def _llm_search(self, search_term):
         """Search for models by name."""
-        from flacoai.models import fuzzy_match_models
+        from aider.models import fuzzy_match_models
 
         matches = fuzzy_match_models(search_term)
 
@@ -2824,7 +2824,7 @@ Make it friendly and educational for new developers."""
 
     def cmd_report(self, args):
         "Report a problem by opening a GitHub Issue"
-        from flacoai.report import report_github_issue
+        from aider.report import report_github_issue
 
         announcements = "\n".join(self.coder.get_announcements())
         issue_text = announcements
