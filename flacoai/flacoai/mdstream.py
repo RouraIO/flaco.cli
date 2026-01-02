@@ -4,10 +4,11 @@ import io
 import time
 
 from rich import box
-from rich.console import Console
+from rich.console import Console, ConsoleOptions, RenderResult
 from rich.live import Live
-from rich.markdown import CodeBlock, Heading, Markdown
+from rich.markdown import CodeBlock, Heading, Markdown, MarkdownContext
 from rich.panel import Panel
+from rich.style import Style
 from rich.syntax import Syntax
 from rich.text import Text
 
@@ -79,7 +80,7 @@ class LeftHeading(Heading):
 
 
 class NoInsetMarkdown(Markdown):
-    """Markdown with code blocks that have no padding and left-justified headings."""
+    """Markdown with code blocks that have no padding, left-justified headings, and styled inline code."""
 
     elements = {
         **Markdown.elements,
@@ -87,6 +88,36 @@ class NoInsetMarkdown(Markdown):
         "code_block": NoInsetCodeBlock,
         "heading_open": LeftHeading,
     }
+
+    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
+        """Render markdown with custom inline code styling."""
+        # Get the base style color from self.style
+        base_color = str(self.style) if self.style and self.style != "none" else None
+
+        # Call parent's __rich_console__ to get the rendered content
+        for segment in super().__rich_console__(console, options):
+            # Process the segment to replace inline code styling
+            if hasattr(segment, 'text'):
+                # This is a Text object, we can process it
+                new_text = Text()
+                for span in segment.spans:
+                    # Check if this span has background (inline code indicator)
+                    if span.style and hasattr(span.style, 'bgcolor') and span.style.bgcolor:
+                        # This is inline code - replace with bold italic text, no background
+                        style = Style(color=base_color, bold=True, italic=True)
+                        new_text.append(segment.plain[span.start:span.end], style=style)
+                    else:
+                        # Keep original styling
+                        new_text.append(segment.plain[span.start:span.end], style=span.style)
+
+                # If no spans were found, just yield the original
+                if new_text.plain:
+                    yield new_text
+                else:
+                    yield segment
+            else:
+                # Not a Text object, yield as-is
+                yield segment
 
 
 class MarkdownStream:
