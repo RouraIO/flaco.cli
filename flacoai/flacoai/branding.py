@@ -4,19 +4,16 @@ import random
 from datetime import datetime
 
 
-def get_flaco_ascii_art(version="1.6.0"):
-    """Generate FlacoAI ASCII art banner with version.
+def get_flaco_ascii_art(version="1.0.0"):
+    """Generate FlacoAI ASCII art banner.
 
     Args:
-        version: Version string to display in the header
+        version: Version string (not used, kept for compatibility)
 
     Returns:
         ASCII art banner as string
     """
-    # Pad version to fit nicely in the header
-    version_text = f"FlacoAI v{version}"
-
-    return f"""╔═══════════════════════════════════════════════════════════════════════════╗
+    return """╔═══════════════════════════════════════════════════════════════════════════╗
 ║                                                                           ║
 ║      ███████╗ ██╗      █████╗   ██████╗  ██████╗       █████╗  ██╗        ║
 ║      ██╔════╝ ██║     ██╔══██╗ ██╔════╝ ██╔═══██╗     ██╔══██╗ ██║        ║
@@ -25,7 +22,7 @@ def get_flaco_ascii_art(version="1.6.0"):
 ║      ██║      ███████╗██║  ██║ ╚██████╗ ╚██████╔╝     ██║  ██║ ██║        ║
 ║      ╚═╝      ╚══════╝╚═╝  ╚═╝  ╚═════╝  ╚═════╝      ╚═╝  ╚═╝ ╚═╝        ║
 ║                                                                           ║
-║   🚀 The Ultimate Local-First Swift & iOS Development Assistant • {version_text:<8} ║
+║        🚀 The Ultimate Local-First Swift & iOS Development Assistant      ║
 ║                                                                           ║
 ╚═══════════════════════════════════════════════════════════════════════════╝"""
 

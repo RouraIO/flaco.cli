@@ -88,7 +88,7 @@ def check_version(io, just_check=False, verbose=False):
             current_version
         )
     except Exception as err:
-        io.tool_error(f"Error checking pypi for new version: {err}")
+        # Silently fail - don't show error to user
         return False
     finally:
         VERSION_CHECK_FNAME.parent.mkdir(parents=True, exist_ok=True)

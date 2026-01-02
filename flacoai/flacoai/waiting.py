@@ -62,21 +62,29 @@ class Spinner:
         self.is_tty = sys.stdout.isatty()
         self.console = Console()
 
-        # Simple, compact animation frames - just cycling characters
-        # Uses star, plus, bullet for a minimal footprint
+        # More animated sequence - bouncing/rotating effect
+        # Creates more visible movement
         ascii_frames = [
-            "*",  # star
-            "+",  # plus
-            "•",  # bullet
+            "⠋",  # Braille spinner
+            "⠙",
+            "⠹",
+            "⠸",
+            "⠼",
+            "⠴",
+            "⠦",
+            "⠧",
+            "⠇",
+            "⠏",
         ]
 
-        # Try unicode symbols if supported, otherwise use ASCII
+        # Try unicode symbols if supported, otherwise use ASCII fallback
         if self._supports_unicode():
-            frames = ["★", "✦", "●"]  # Unicode star, sparkle, circle
-            self.scan_char = "★"
+            frames = ascii_frames  # Use braille spinner
+            self.scan_char = ascii_frames[0]
         else:
-            frames = ascii_frames
-            self.scan_char = "*"
+            # ASCII fallback with more movement
+            frames = ["|", "/", "-", "\\", "|", "/", "-", "\\"]
+            self.scan_char = "|"
 
         self.frames = frames
         self.frame_idx = Spinner.last_frame_idx  # Initialize from class variable
