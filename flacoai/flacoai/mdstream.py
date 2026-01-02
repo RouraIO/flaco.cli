@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.live import Live
 from rich.markdown import CodeBlock, Heading, Markdown
 from rich.panel import Panel
+from rich.style import Style
 from rich.syntax import Syntax
 from rich.text import Text
 
@@ -79,13 +80,19 @@ class LeftHeading(Heading):
 
 
 class NoInsetMarkdown(Markdown):
-    """Markdown with code blocks that have no padding and left-justified headings."""
+    """Markdown with code blocks that have no padding, left-justified headings, and transparent inline code."""
 
     elements = {
         **Markdown.elements,
         "fence": NoInsetCodeBlock,
         "code_block": NoInsetCodeBlock,
         "heading_open": LeftHeading,
+    }
+
+    # Override inline code style to remove white background
+    MARKUP = {
+        **Markdown.MARKUP,
+        "code_inline": Style(color="cyan", bold=True),  # Cyan text, no background
     }
 
 
@@ -100,7 +107,7 @@ class MarkdownStream:
     live = None  # Rich Live display instance
     when = 0  # Timestamp of last update
     min_delay = 1.0 / 20  # Minimum time between updates (20fps)
-    live_window = 6  # Number of lines to keep visible at bottom during streaming
+    live_window = 2  # Number of lines to keep visible at bottom during streaming (reduced for smoother streaming)
 
     def __init__(self, mdargs=None):
         """Initialize the markdown stream.
