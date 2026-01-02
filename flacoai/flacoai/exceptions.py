@@ -73,7 +73,17 @@ class LiteLLMExceptions:
             self.exceptions[ex] = self.exception_info[var]
 
     def exceptions_tuple(self):
-        return tuple(self.exceptions)
+        # Return tuple of exception classes, filtering out any non-BaseException types
+        # Python 3.14+ requires all caught exceptions to inherit from BaseException
+        valid_exceptions = []
+        for exc_class in self.exceptions:
+            try:
+                if isinstance(exc_class, type) and issubclass(exc_class, BaseException):
+                    valid_exceptions.append(exc_class)
+            except TypeError:
+                # Skip any invalid exception classes
+                continue
+        return tuple(valid_exceptions) if valid_exceptions else (Exception,)
 
     def get_ex_info(self, ex):
         """Return the ExInfo for a given exception instance"""
