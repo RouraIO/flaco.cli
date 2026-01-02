@@ -87,7 +87,8 @@ def main():
 
     # Create the executable
     flaco_bin = local_bin / 'flaco'
-    executable_content = f"""#!/usr/bin/env python3
+    venv_python = project_root / "venv" / "bin" / "python3"
+    executable_content = f"""#!{venv_python}
 # Flaco AI CLI Launcher
 
 import os
@@ -95,11 +96,6 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path("{project_root}")
-
-# Activate virtual environment if it exists
-venv_activate = PROJECT_ROOT / "venv" / "bin" / "activate_this.py"
-if venv_activate.exists():
-    exec(venv_activate.read_text())
 
 # Set Python path
 sys.path.insert(0, str(PROJECT_ROOT / "flacoai"))
