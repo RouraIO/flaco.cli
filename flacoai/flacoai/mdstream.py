@@ -104,29 +104,29 @@ class NoInsetMarkdown(Markdown):
         base_color = str(self.style) if self.style and self.style != "none" else None
 
         # Call parent's __rich_console__ to get the rendered content
-        for segment in super().__rich_console__(console, options):
-            # Process the segment to replace inline code styling
-            if hasattr(segment, 'text'):
+        for renderable in super().__rich_console__(console, options):
+            # Check if this is a Text object (which has spans)
+            if isinstance(renderable, Text) and hasattr(renderable, '_spans'):
                 # This is a Text object, we can process it
                 new_text = Text()
-                for span in segment.spans:
+                for span in renderable._spans:
                     # Check if this span has background (inline code indicator)
                     if span.style and hasattr(span.style, 'bgcolor') and span.style.bgcolor:
                         # This is inline code - replace with bold italic text, no background
                         style = Style(color=base_color, bold=True, italic=True)
-                        new_text.append(segment.plain[span.start:span.end], style=style)
+                        new_text.append(renderable.plain[span.start:span.end], style=style)
                     else:
                         # Keep original styling
-                        new_text.append(segment.plain[span.start:span.end], style=span.style)
+                        new_text.append(renderable.plain[span.start:span.end], style=span.style)
 
                 # If no spans were found, just yield the original
                 if new_text.plain:
                     yield new_text
                 else:
-                    yield segment
+                    yield renderable
             else:
                 # Not a Text object, yield as-is
-                yield segment
+                yield renderable
 
 
 class MarkdownStream:
