@@ -5,72 +5,91 @@ All notable changes to Flaco AI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.6.0] - 2026-01-02
+## [1.0.0] - 2026-01-02
 
-### 🎨 UI/UX Modernization
+### 🎉 First Official Release
 
-This release focuses on making Flaco AI more modern, engaging, and visually appealing while maintaining all the stability of v1.5.0.
+This is the first official stable release of **Flaco AI** - The Ultimate Local-First Swift & iOS Development Assistant. Built on top of the proven aider codebase, Flaco AI brings a complete rebrand, modern UI, and optimized workflow for local LLM development.
 
-### Added
-- **Fun Loading Animations**: Randomized loading phrases instead of static "Waiting for [model]" text
-  - 18 different phrases including "Thinking...", "Pondering...", "Hubbub-a-looing...", "Channeling the AI spirits...", etc.
-  - Makes interactions more engaging and lighthearted
-  - Different phrase shown on each interaction
-- **Compact Header Design**: Completely redesigned startup header inspired by Claude Code
-  - All key information on one line: version, model, directory, branch, file count
-  - Much more information-dense and modern
-  - Removed verbose multi-line formatting
-  - Kept the beloved ASCII logo
+### ✨ Core Features
 
-### Changed
-- **Assistant Output Color**: Changed from dark blue (#0088ff) to cyan (#00FFFF)
-  - Better readability across all terminal themes
-  - Consistent across both light and dark modes
-  - More modern, professional appearance
-- **Header Layout**: Streamlined from ~15 lines to ~3 lines while showing same information
-- **Warning Messages**: Simplified with emoji prefixes (⚠️) for better visual scanning
+#### 🎨 Modern, Beautiful UI
+- **Compact Loading Spinner**: Minimal ★ → ✦ → ● cycling animation (unicode) or * → + → • (ASCII)
+- **Fun Loading Messages**: 18 random phrases like "Thinking...", "Pondering...", "Hubbub-a-looing...", "Channeling the AI spirits..."
+- **Cyan Response Text**: High-contrast #00FFFF color for excellent readability in all themes
+- **Organized Header**: Clean 3-line display with emoji labels
+  - 🤖 Model: [model info with format]
+  - 📁 Directory: [working directory]
+  - 🌿 [branch] • 📊 [file count] • 🗺️ [repo-map stats]
+- **Version in Banner**: Version displayed in the ASCII art header box
 
-### Technical
-- Updated `flacoai/waiting.py` with THINKING_PHRASES list and random selection
-- Updated `flacoai/args.py`, `flacoai/main.py`, `flacoai/io.py` with new cyan color defaults
-- Added `format_compact_header()` function in `flacoai/branding.py`
-- Redesigned `get_announcements()` method in `flacoai/coders/base_coder.py`
+#### 🚀 Local-First Development
+- **Ollama Integration**: Seamless support for local LLM models via Ollama
+- **Interactive Setup**: One-command setup that configures everything:
+  - Git user configuration
+  - Ollama server URL
+  - Default model selection
+  - Auto-disables model warnings for local installs
+- **Model Warnings Suppressed**: No annoying unknown context window warnings for local models
 
-## [1.5.0] - 2026-01-02
+#### 🔧 Complete Rebrand
+- **Internal Namespace**: Complete migration from `aider` to `flacoai`
+  - All imports updated: `from aider` → `from flacoai`
+  - Module structure: `flacoai/aider/` → `flacoai/flacoai/`
+  - Resource paths: `aider.resources` → `flacoai.resources`
+- **Environment Variables**: `aider_*` → `flaco_*` prefix for all env vars
+- **GitHub Repository**: `RouraIO/flaco.cli`
+- **Branding**: FlacoAI ASCII art and Swift/iOS focused messaging
 
-### 🎉 First Stable Release
+#### 🐛 Critical Fixes
+- **scipy Dependency**: Fixed ModuleNotFoundError crash by including scipy in requirements
+- **Tree-sitter Compatibility**: Updated to tree-sitter 0.25+ API using QueryCursor
+- **Documentation URLs**: All URLs point to GitHub repository (no non-existent website links)
+- **Python 3.14 Compatibility**: Full support for latest Python version
 
-This marks the first truly stable production release of Flaco AI with complete branding consistency and unified configuration.
+#### 📦 Installation & Setup
+- **Simple Installation**: `python3 scripts/install_flaco.py`
+- **Auto-Configuration**: Interactive setup handles git, Ollama, and preferences
+- **Clean Launcher**: Direct venv Python interpreter in shebang for reliability
 
-### Changed
-- **BREAKING**: Environment variable prefix changed from `aider_` to `flaco_` for consistency
-  - `aider_DOCKER_IMAGE` → `flaco_DOCKER_IMAGE`
-  - `aider_ANALYTICS` → `flaco_ANALYTICS`
-  - `aider_DARK_MODE` → `flaco_DARK_MODE`
-  - `aider_SHOW_DIFFS` → `flaco_SHOW_DIFFS`
-  - `aider_CHECK_UPDATE` → `flaco_CHECK_UPDATE`
-  - `aider_CACHE_KEEPALIVE_DELAY` → `flaco_CACHE_KEEPALIVE_DELAY`
-  - `aider_SANITY_CHECK_TURNS` → `flaco_SANITY_CHECK_TURNS`
-  - `aider_BENCHMARK_DIR` → `flaco_BENCHMARK_DIR`
-  - `aider_DOCKER` → `flaco_DOCKER`
+### 🔧 Technical Details
 
-### Fixed
-- Unified version numbering across all files to 1.5.0
-- Updated GitHub repository URLs from `flacoai-AI/flacoai` to `RouraIO/flaco.cli`
-- Synchronized version in installer, launcher scripts, and core modules
-- Updated all test fixtures to use new `flaco_` environment variable prefix
+**Key Files:**
+- `flacoai/__init__.py` - Version 1.0.0
+- `flacoai/waiting.py` - Compact 3-character cycling spinner
+- `flacoai/branding.py` - `get_flaco_ascii_art()` with version, `format_compact_header()` with labels
+- `flacoai/coders/base_coder.py` - Redesigned `get_announcements()` with organized header
+- `flacoai/args.py`, `flacoai/main.py`, `flacoai/io.py` - Cyan color defaults (#00FFFF)
+- `requirements.txt` - scipy included for PageRank algorithm
+- `flacoai/urls.py` - All URLs point to GitHub repository
 
-### Documentation
-- Updated CONTRIBUTING.md with correct repository URLs
-- Updated README.md with current GitHub organization
-- Improved consistency across all documentation files
+**Environment Variables:**
+- `flaco_DOCKER_IMAGE`, `flaco_ANALYTICS`, `flaco_DARK_MODE`, `flaco_SHOW_DIFFS`
+- `flaco_CHECK_UPDATE`, `flaco_CACHE_KEEPALIVE_DELAY`, `flaco_SANITY_CHECK_TURNS`
+- `flaco_BENCHMARK_DIR`, `flaco_DOCKER`
 
-### Technical
-- Complete environment variable namespace migration for better branding
-- Version consistency enforcement across installation and runtime scripts
-- Enhanced test suite with updated environment variable references
+### 📖 Documentation
+- Complete README with installation instructions
+- CONTRIBUTING.md with correct repository URLs
+- Comprehensive CHANGELOG
+- GitHub repository with release notes
 
-## [1.3.0] - 2026-01-01
+### 🦙 Ollama Support
+
+Perfect integration with local models:
+```bash
+export OPENAI_API_BASE="http://localhost:11434/v1"
+export OPENAI_API_KEY="ollama"
+flaco --model openai/qwen2.5-coder:32b --no-show-model-warnings
+```
+
+---
+
+## Pre-1.0 Development Versions
+
+The following were development versions leading up to the 1.0.0 release:
+
+## [0.3.0] - 2026-01-01
 
 ### Fixed
 - Improved launcher reliability by using venv's Python interpreter directly in shebang
