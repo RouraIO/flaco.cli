@@ -89,7 +89,7 @@ class LeftHeading(Heading):
 
 
 class NoInsetMarkdown(Markdown):
-    """Markdown with code blocks that have no padding, left-justified headings, and styled inline code."""
+    """Markdown with code blocks that have no padding and left-justified headings."""
 
     elements = {
         **Markdown.elements,
@@ -98,35 +98,11 @@ class NoInsetMarkdown(Markdown):
         "heading_open": LeftHeading,
     }
 
-    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
-        """Render markdown with custom inline code styling."""
-        # Get the base style color from self.style
-        base_color = str(self.style) if self.style and self.style != "none" else None
-
-        # Call parent's __rich_console__ to get the rendered content
-        for renderable in super().__rich_console__(console, options):
-            # Check if this is a Text object (which has spans)
-            if isinstance(renderable, Text) and hasattr(renderable, '_spans'):
-                # This is a Text object, we can process it
-                new_text = Text()
-                for span in renderable._spans:
-                    # Check if this span has background (inline code indicator)
-                    if span.style and hasattr(span.style, 'bgcolor') and span.style.bgcolor:
-                        # This is inline code - replace with bold italic text, no background
-                        style = Style(color=base_color, bold=True, italic=True)
-                        new_text.append(renderable.plain[span.start:span.end], style=style)
-                    else:
-                        # Keep original styling
-                        new_text.append(renderable.plain[span.start:span.end], style=span.style)
-
-                # If no spans were found, just yield the original
-                if new_text.plain:
-                    yield new_text
-                else:
-                    yield renderable
-            else:
-                # Not a Text object, yield as-is
-                yield renderable
+    def __init__(self, *args, **kwargs):
+        """Initialize with custom inline code styling."""
+        # Force inline_code_theme to None to disable background
+        kwargs['inline_code_theme'] = None
+        super().__init__(*args, **kwargs)
 
 
 class MarkdownStream:
@@ -168,9 +144,18 @@ class MarkdownStream:
         Returns:
             list: List of rendered lines with line endings preserved
         """
+        from rich.theme import Theme
+
+        # Create custom theme to remove white background from inline code
+        # Override markdown.code and markdown.code_inline styles
+        custom_theme = Theme({
+            "markdown.code": "bold",  # Just bold, no background
+            "markdown.code_inline": "bold",  # Just bold, no background
+        })
+
         # Render the markdown to a string buffer
         string_io = io.StringIO()
-        console = Console(file=string_io, force_terminal=True)
+        console = Console(file=string_io, force_terminal=True, theme=custom_theme)
         markdown = NoInsetMarkdown(text, **self.mdargs)
         console.print(markdown)
         output = string_io.getvalue()
