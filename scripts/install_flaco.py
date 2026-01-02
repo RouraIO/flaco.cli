@@ -100,7 +100,7 @@ PROJECT_ROOT = Path("{project_root}")
 # Set Python path
 sys.path.insert(0, str(PROJECT_ROOT / "aider"))
 os.environ["PYTHONPATH"] = str(PROJECT_ROOT / "aider") + os.pathsep + os.environ.get("PYTHONPATH", "")
-os.environ["SETUPTOOLS_SCM_PRETEND_VERSION"] = "0.86.1"
+os.environ["SETUPTOOLS_SCM_PRETEND_VERSION"] = "1.5.0"
 
 # Run Flaco AI
 os.chdir(PROJECT_ROOT / "aider")

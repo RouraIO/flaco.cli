@@ -18,7 +18,7 @@ cd /Users/roura.io/Documents/dev.local/flaco && ./run-flaco.sh
 
 Good afternoon, Christopher! Welcome back.
 
-FlacoAI v0.86.1 (Enhanced AI Coding Assistant)
+FlacoAI v1.5.0 (Enhanced AI Coding Assistant)
 ...
 💡 Tip: [Random helpful tip about FlacoAI features]
 ```

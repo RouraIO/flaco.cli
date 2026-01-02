@@ -948,7 +948,7 @@ class Model(ModelSettings):
             os.environ[openai_api_key] = token
 
     def send_completion(self, messages, functions, stream, temperature=None):
-        if os.environ.get("aider_SANITY_CHECK_TURNS"):
+        if os.environ.get("flaco_SANITY_CHECK_TURNS"):
             sanity_check_messages(messages)
 
         if self.is_deepseek_r1():

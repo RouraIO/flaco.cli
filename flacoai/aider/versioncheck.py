@@ -36,7 +36,7 @@ def install_upgrade(io, latest_version=None):
     else:
         new_ver_text = "Install latest version of flacoai?"
 
-    docker_image = os.environ.get("aider_DOCKER_IMAGE")
+    docker_image = os.environ.get("flaco_DOCKER_IMAGE")
     if docker_image:
         text = f"""
 {new_ver_text} To upgrade, run:

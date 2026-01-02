@@ -22,8 +22,8 @@ class TestMain(TestCase):
     def setUp(self):
         self.original_env = os.environ.copy()
         os.environ["OPENAI_API_KEY"] = "deadbeef"
-        os.environ["aider_CHECK_UPDATE"] = "false"
-        os.environ["aider_ANALYTICS"] = "false"
+        os.environ["flaco_CHECK_UPDATE"] = "false"
+        os.environ["flaco_ANALYTICS"] = "false"
         self.original_cwd = os.getcwd()
         self.tempdir_obj = IgnorantTemporaryDirectory()
         self.tempdir = self.tempdir_obj.name
@@ -419,7 +419,7 @@ class TestMain(TestCase):
         return env_file_path
 
     def test_env_file_flag_sets_automatic_variable(self):
-        env_file_path = self.create_env_file(".env.test", "aider_DARK_MODE=True")
+        env_file_path = self.create_env_file(".env.test", "flaco_DARK_MODE=True")
         with patch("aider.main.InputOutput") as MockInputOutput:
             MockInputOutput.return_value.get_input.return_value = None
             MockInputOutput.return_value.get_input.confirm_ask = True
@@ -434,7 +434,7 @@ class TestMain(TestCase):
             self.assertEqual(kwargs["code_theme"], "monokai")
 
     def test_default_env_file_sets_automatic_variable(self):
-        self.create_env_file(".env", "aider_DARK_MODE=True")
+        self.create_env_file(".env", "flaco_DARK_MODE=True")
         with patch("aider.main.InputOutput") as MockInputOutput:
             MockInputOutput.return_value.get_input.return_value = None
             MockInputOutput.return_value.get_input.confirm_ask = True
@@ -446,7 +446,7 @@ class TestMain(TestCase):
             self.assertEqual(kwargs["code_theme"], "monokai")
 
     def test_false_vals_in_env_file(self):
-        self.create_env_file(".env", "aider_SHOW_DIFFS=off")
+        self.create_env_file(".env", "flaco_SHOW_DIFFS=off")
         with patch("aider.coders.Coder.create") as MockCoder:
             main(["--no-git", "--yes"], input=DummyInput(), output=DummyOutput())
             MockCoder.assert_called_once()
@@ -454,7 +454,7 @@ class TestMain(TestCase):
             self.assertEqual(kwargs["show_diffs"], False)
 
     def test_true_vals_in_env_file(self):
-        self.create_env_file(".env", "aider_SHOW_DIFFS=on")
+        self.create_env_file(".env", "flaco_SHOW_DIFFS=on")
         with patch("aider.coders.Coder.create") as MockCoder:
             main(["--no-git", "--yes"], input=DummyInput(), output=DummyOutput())
             MockCoder.assert_called_once()
@@ -495,7 +495,7 @@ class TestMain(TestCase):
                 self.assertFalse(called_arg.endswith(f"subdir{os.path.sep}dirty_file.py"))
 
     def test_verbose_mode_lists_env_vars(self):
-        self.create_env_file(".env", "aider_DARK_MODE=on")
+        self.create_env_file(".env", "flaco_DARK_MODE=on")
         with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
             main(
                 ["--no-git", "--verbose", "--exit", "--yes"],
@@ -506,11 +506,11 @@ class TestMain(TestCase):
             relevant_output = "\n".join(
                 line
                 for line in output.splitlines()
-                if "aider_DARK_MODE" in line or "dark_mode" in line
+                if "flaco_DARK_MODE" in line or "dark_mode" in line
             )  # this bit just helps failing assertions to be easier to read
-            self.assertIn("aider_DARK_MODE", relevant_output)
+            self.assertIn("flaco_DARK_MODE", relevant_output)
             self.assertIn("dark_mode", relevant_output)
-            self.assertRegex(relevant_output, r"aider_DARK_MODE:\s+on")
+            self.assertRegex(relevant_output, r"flaco_DARK_MODE:\s+on")
             self.assertRegex(relevant_output, r"dark_mode:\s+True")
 
     def test_yaml_config_file_loading(self):
@@ -904,7 +904,7 @@ class TestMain(TestCase):
 
     def test_pytest_env_vars(self):
         # Verify that environment variables from pytest.ini are properly set
-        self.assertEqual(os.environ.get("aider_ANALYTICS"), "false")
+        self.assertEqual(os.environ.get("flaco_ANALYTICS"), "false")
 
     def test_set_env_single(self):
         # Test setting a single environment variable

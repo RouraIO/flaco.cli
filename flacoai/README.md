@@ -24,8 +24,8 @@ from scripts.homepage import get_badges_md
 text = get_badges_md()
 cog.out(text)
 ]]]-->
-  <a href="https://github.com/flacoai-AI/flacoai/stargazers"><img alt="GitHub Stars" title="Total number of GitHub stars the flacoai project has received"
-src="https://img.shields.io/github/stars/flacoai-AI/flacoai?style=flat-square&logo=github&color=f1c40f&labelColor=555555"/></a>
+  <a href="https://github.com/RouraIO/flaco.cli/stargazers"><img alt="GitHub Stars" title="Total number of GitHub stars the flacoai project has received"
+src="https://img.shields.io/github/stars/RouraIO/flaco.cli?style=flat-square&logo=github&color=f1c40f&labelColor=555555"/></a>
   <a href="https://pypi.org/project/flacoai-chat/"><img alt="PyPI Downloads" title="Total number of installations via pip from PyPI"
 src="https://img.shields.io/badge/📦%20Installs-4.1M-2ecc71?style=flat-square&labelColor=555555"/></a>
   <img alt="Tokens per week" title="Number of tokens processed weekly by flacoai users"
@@ -134,7 +134,7 @@ See the [installation instructions](https://flacoai.chat/docs/install.html) and 
 
 ### Community & Resources
 - [LLM Leaderboards](https://flacoai.chat/docs/leaderboards/)
-- [GitHub Repository](https://github.com/flacoai-AI/flacoai)
+- [GitHub Repository](https://github.com/RouraIO/flaco.cli)
 - [Discord Community](https://discord.gg/Y7X7bhMQFV)
 - [Release notes](https://flacoai.chat/HISTORY.html)
 - [Blog](https://flacoai.chat/blog/)
@@ -146,14 +146,14 @@ See the [installation instructions](https://flacoai.chat/docs/install.html) and 
 - *"The best AI coding assistant so far."* — [Matthew Berman on YouTube](https://www.youtube.com/watch?v=df8afeb1FY8)
 - *"flacoai ... has easily quadrupled my coding productivity."* — [SOLAR_FIELDS on Hacker News](https://news.ycombinator.com/item?id=36212100)
 - *"It's a cool workflow... flacoai's ergonomics are perfect for me."* — [qup on Hacker News](https://news.ycombinator.com/item?id=38185326)
-- *"It's really like having your senior developer live right in your Git repo - truly amazing!"* — [rappster on GitHub](https://github.com/flacoai-AI/flacoai/issues/124)
-- *"What an amazing tool. It's incredible."* — [valyagolev on GitHub](https://github.com/flacoai-AI/flacoai/issues/6#issue-1722897858)
-- *"flacoai is such an astounding thing!"* — [cgrothaus on GitHub](https://github.com/flacoai-AI/flacoai/issues/82#issuecomment-1631876700)
+- *"It's really like having your senior developer live right in your Git repo - truly amazing!"* — [rappster on GitHub](https://github.com/RouraIO/flaco.cli/issues/124)
+- *"What an amazing tool. It's incredible."* — [valyagolev on GitHub](https://github.com/RouraIO/flaco.cli/issues/6#issue-1722897858)
+- *"flacoai is such an astounding thing!"* — [cgrothaus on GitHub](https://github.com/RouraIO/flaco.cli/issues/82#issuecomment-1631876700)
 - *"It was WAY faster than I would be getting off the ground and making the first few working versions."* — [Daniel Feldman on X](https://twitter.com/d_feldman/status/1662295077387923456)
 - *"THANK YOU for flacoai! It really feels like a glimpse into the future of coding."* — [derwiki on Hacker News](https://news.ycombinator.com/item?id=38205643)
 - *"It's just amazing. It is freeing me to do things I felt were out my comfort zone before."* — [Dougie on Discord](https://discord.com/channels/1131200896827654144/1174002618058678323/1174084556257775656)
-- *"This project is stellar."* — [funkytaco on GitHub](https://github.com/flacoai-AI/flacoai/issues/112#issuecomment-1637429008)
-- *"Amazing project, definitely the best AI coding assistant I've used."* — [joshuavial on GitHub](https://github.com/flacoai-AI/flacoai/issues/84)
+- *"This project is stellar."* — [funkytaco on GitHub](https://github.com/RouraIO/flaco.cli/issues/112#issuecomment-1637429008)
+- *"Amazing project, definitely the best AI coding assistant I've used."* — [joshuavial on GitHub](https://github.com/RouraIO/flaco.cli/issues/84)
 - *"I absolutely love using flacoai ... It makes software development feel so much lighter as an experience."* — [principalideal0 on Discord](https://discord.com/channels/1131200896827654144/1133421607499595858/1229689636012691468)
 - *"I have been recovering from ... surgeries ... flacoai ... has allowed me to continue productivity."* — [codeninja on Reddit](https://www.reddit.com/r/OpenAI/s/nmNwkHy1zG)
 - *"I am an flacoai addict. I'm getting so much more work done, but in less time."* — [dandandan on Discord](https://discord.com/channels/1131200896827654144/1131200896827654149/1135913253483069470)

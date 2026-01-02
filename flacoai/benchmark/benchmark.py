@@ -30,7 +30,7 @@ from aider.coders import Coder, base_coder
 from aider.dump import dump  # noqa: F401
 from aider.io import InputOutput
 
-BENCHMARK_DNAME = Path(os.environ.get("aider_BENCHMARK_DIR", "tmp.benchmarks"))
+BENCHMARK_DNAME = Path(os.environ.get("flaco_BENCHMARK_DIR", "tmp.benchmarks"))
 
 EXERCISES_DIR_DEFAULT = "polyglot-benchmark"
 
@@ -249,7 +249,7 @@ def main(
     assert len(updated_dirnames) == 1, updated_dirnames
     dirname = updated_dirnames[0]
 
-    if "aider_DOCKER" not in os.environ:
+    if "flaco_DOCKER" not in os.environ:
         print("Warning: benchmarking runs unvetted code from GPT, run in a docker container")
         return
 

@@ -12,7 +12,7 @@ source "$SCRIPT_DIR/venv/bin/activate"
 export PYTHONPATH="$SCRIPT_DIR/flacoai:$PYTHONPATH"
 
 # Set version for setuptools-scm
-export SETUPTOOLS_SCM_PRETEND_VERSION=0.86.1
+export SETUPTOOLS_SCM_PRETEND_VERSION=1.5.0
 
 # Run flacoai
 cd "$SCRIPT_DIR/flacoai"

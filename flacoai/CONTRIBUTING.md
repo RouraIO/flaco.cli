@@ -17,10 +17,10 @@ Contributions of
 [LLM benchmark results](https://flacoai.chat/docs/leaderboards/)
 are welcome!
 See the
-[benchmark README](https://github.com/flacoai-AI/flacoai/blob/main/benchmark/README.md)
+[benchmark README](https://github.com/RouraIO/flaco.cli/blob/main/benchmark/README.md)
 for information on running flacoai's code editing benchmarks.
 Submit results by opening a PR with edits to the
-[benchmark results data files](https://github.com/flacoai-AI/flacoai/blob/main/flacoai/website/_data/).
+[benchmark results data files](https://github.com/RouraIO/flaco.cli/blob/main/flacoai/website/_data/).
 
 
 ## Pull Requests
@@ -42,7 +42,7 @@ All contributors will be asked to complete the agreement as part of the PR proce
 ### Clone the Repository
 
 ```
-git clone https://github.com/flacoai-AI/flacoai.git
+git clone https://github.com/RouraIO/flaco.cli.git
 cd flacoai
 ```
 
