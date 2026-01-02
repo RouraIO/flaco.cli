@@ -5,6 +5,37 @@ All notable changes to Flaco AI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-01-02
+
+### 🎨 UI/UX Modernization
+
+This release focuses on making Flaco AI more modern, engaging, and visually appealing while maintaining all the stability of v1.5.0.
+
+### Added
+- **Fun Loading Animations**: Randomized loading phrases instead of static "Waiting for [model]" text
+  - 18 different phrases including "Thinking...", "Pondering...", "Hubbub-a-looing...", "Channeling the AI spirits...", etc.
+  - Makes interactions more engaging and lighthearted
+  - Different phrase shown on each interaction
+- **Compact Header Design**: Completely redesigned startup header inspired by Claude Code
+  - All key information on one line: version, model, directory, branch, file count
+  - Much more information-dense and modern
+  - Removed verbose multi-line formatting
+  - Kept the beloved ASCII logo
+
+### Changed
+- **Assistant Output Color**: Changed from dark blue (#0088ff) to cyan (#00FFFF)
+  - Better readability across all terminal themes
+  - Consistent across both light and dark modes
+  - More modern, professional appearance
+- **Header Layout**: Streamlined from ~15 lines to ~3 lines while showing same information
+- **Warning Messages**: Simplified with emoji prefixes (⚠️) for better visual scanning
+
+### Technical
+- Updated `flacoai/waiting.py` with THINKING_PHRASES list and random selection
+- Updated `flacoai/args.py`, `flacoai/main.py`, `flacoai/io.py` with new cyan color defaults
+- Added `format_compact_header()` function in `flacoai/branding.py`
+- Redesigned `get_announcements()` method in `flacoai/coders/base_coder.py`
+
 ## [1.5.0] - 2026-01-02
 
 ### 🎉 First Stable Release
