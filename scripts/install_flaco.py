@@ -39,6 +39,50 @@ def main():
     # Ensure ~/.local/bin exists
     local_bin.mkdir(parents=True, exist_ok=True)
 
+    # Ollama server configuration
+    print(f"{CYAN}→{NC} Configuring Ollama server connection...\n")
+    print(f"  {CYAN}Flaco AI works with local LLMs via Ollama.{NC}")
+    print(f"  {CYAN}If Ollama is running on this machine, press Enter for default.{NC}")
+    print(f"  {CYAN}If Ollama is on another server, enter the host:port{NC}\n")
+
+    ollama_input = input(f"  Ollama server [{GREEN}localhost:11434{NC}]: ").strip()
+
+    if not ollama_input:
+        ollama_server = "localhost:11434"
+    else:
+        # Remove http:// if user added it
+        ollama_server = ollama_input.replace("http://", "").replace("https://", "")
+        # Remove /v1 if user added it
+        ollama_server = ollama_server.replace("/v1", "").rstrip("/")
+
+    ollama_base_url = f"http://{ollama_server}/v1"
+    print(f"  {GREEN}✓{NC} Using Ollama at: {CYAN}{ollama_base_url}{NC}\n")
+
+    # Tint color configuration
+    print(f"{CYAN}→{NC} Choose your UI tint color...\n")
+    print(f"  {CYAN}Available colors:{NC}")
+    print(f"    1. {CYAN}cyan{NC} (default)")
+    print(f"    2. {GREEN}green{NC}")
+    print(f"    3. {YELLOW}yellow{NC}")
+    print(f"    4. \033[0;35mmagenta\033[0m")
+    print(f"    5. \033[0;34mblue\033[0m")
+    print(f"    6. \033[0;31mred\033[0m\n")
+
+    color_input = input(f"  Select color [1-6, {GREEN}default: cyan{NC}]: ").strip()
+
+    color_map = {
+        "1": "cyan",
+        "2": "green",
+        "3": "yellow",
+        "4": "magenta",
+        "5": "blue",
+        "6": "red",
+        "": "cyan"
+    }
+
+    tint_color = color_map.get(color_input, "cyan")
+    print(f"  {GREEN}✓{NC} Using {CYAN}{tint_color}{NC} theme\n")
+
     print(f"{CYAN}→{NC} Creating Flaco AI executable...")
 
     # Create the executable
@@ -97,9 +141,15 @@ if __name__ == "__main__":
     else:
         print(f"{YELLOW}!{NC} PATH already configured")
 
-    # Check if aliases already exist
-    if "alias flaco.ai=" not in config_content:
-        aliases = """
+    # Add Ollama configuration
+    config_content = shell_config.read_text()
+    if "OPENAI_API_BASE" not in config_content or "flaco" not in config_content.lower():
+        ollama_config = f"""
+# Flaco AI - Configuration
+export OPENAI_API_BASE="{ollama_base_url}"
+export OPENAI_API_KEY="ollama"
+export FLACO_TINT_COLOR="{tint_color}"
+
 # Flaco AI - Quick model aliases
 alias flaco.ai="flaco"
 alias flaco.ai.qwen="flaco --model qwen2.5-coder:32b"
@@ -107,10 +157,10 @@ alias flaco.ai.ds="flaco --model deepseek-coder-v2:16b"
 alias flaco.ai.r1="flaco --model deepseek-r1:32b"
 """
         config_content = shell_config.read_text()
-        shell_config.write_text(config_content + aliases)
-        print(f"{GREEN}✓{NC} Added Flaco AI shell aliases")
+        shell_config.write_text(config_content + ollama_config)
+        print(f"{GREEN}✓{NC} Added Ollama configuration and shell aliases")
     else:
-        print(f"{YELLOW}!{NC} Aliases already configured")
+        print(f"{YELLOW}!{NC} Configuration already exists")
 
     # Success message
     print(f"\n{GREEN}{'═'*67}{NC}")
@@ -126,6 +176,11 @@ alias flaco.ai.r1="flaco --model deepseek-r1:32b"
     print(f"\n{YELLOW}⚠  To use these commands, run:{NC}")
     print(f"   {CYAN}source {shell_config}{NC}")
     print(f"   {CYAN}# OR open a new terminal{NC}\n")
+
+    print(f"{CYAN}Configuration Summary:{NC}")
+    print(f"  Ollama API: {GREEN}{ollama_base_url}{NC}")
+    print(f"  Tint Color: {GREEN}{tint_color}{NC}")
+    print(f"  {YELLOW}Note:{NC} Make sure Ollama is running before using Flaco AI\n")
 
     print(f"{CYAN}Next steps:{NC}")
     print(f"  1. Run: {GREEN}source {shell_config}{NC}")
