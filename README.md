@@ -1,8 +1,8 @@
-# 🍎 Flaco AI - The Ultimate iOS Development Platform
+# 🍎 Flaco AI - Professional iOS Code Review Platform
 
-**Build. Generate. Ship. All in your terminal.**
+**The most comprehensive code review tool for iOS/Swift development**
 
-Flaco AI is an AI-powered iOS development platform that transforms how you build Swift and SwiftUI apps. From converting design mockups to production-ready code, to managing Xcode projects without leaving your terminal – Flaco AI is your complete iOS development companion.
+Flaco AI is an AI-powered code review platform with **405+ automated checks** specifically designed for iOS and Swift development. Catch security issues, performance problems, and architecture anti-patterns before they reach production.
 
 ```
 ╔═══════════════════════════════════════════════════════════════════════════╗
@@ -14,56 +14,81 @@ Flaco AI is an AI-powered iOS development platform that transforms how you build
 ║      ██║      ███████╗██║  ██║ ╚██████╗ ╚██████╔╝     ██║  ██║ ██║        ║
 ║      ╚═╝      ╚══════╝╚═╝  ╚═╝  ╚═════╝  ╚═════╝      ╚═╝  ╚═╝ ╚═╝        ║
 ║                                                                           ║
-║              🍎 The Ultimate iOS Development Platform 🚀                  ║
-║                 Build. Generate. Ship. All in your terminal.             ║
+║      🚀 Professional iOS Code Review Platform (v2.0.0)                    ║
+║         405+ Automated Checks • CI/CD Ready • Local-First                ║
 ║                                                                           ║
 ╚═══════════════════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
-## ⚡ What Makes Flaco AI Different?
+## ⚡ Why Flaco AI?
 
-### 🎨 Design to Code in Seconds
-Convert any UI mockup or screenshot to production-ready SwiftUI code using vision AI:
+### 🔍 **405+ Automated Checks**
+Comprehensive static analysis covering:
+- **Security**: Keychain usage, ATS compliance, API key detection, weak crypto
+- **Performance**: Main thread blocking, retain cycles, N+1 queries, inefficient rendering
+- **SwiftUI Best Practices**: View body size, @State patterns, GeometryReader usage
+- **iOS Platform**: Deprecated APIs, version compatibility, HIG compliance
+- **Architecture**: Massive View Controllers, tight coupling, separation of concerns
+
+### 🤖 **AI-Powered Insights**
+- Structured review output with Executive Summary
+- Severity-based issue prioritization (Critical/High/Medium/Low)
+- Context-aware recommendations with code examples
+- Integration with Claude Sonnet for intelligent analysis
+
+### 🛠️ **Professional Features**
+
+#### **Interactive Fix Application**
 ```bash
-/screenshot login_mockup.png --save LoginView.swift
+/review --fix
+# Automatically fix common issues interactively
+# • Force unwrap → optional binding
+# • Missing [weak self] → add capture list
+# • Deprecated APIs → modern alternatives
 ```
 
-### 🏗️ SwiftUI Code Generation
-Generate SwiftUI views from templates instantly:
+#### **CI/CD Integration**
 ```bash
-/generate login for MyApp
-/generate list of tasks
-/generate settings
+/review --ci
+# JSON output for pipelines
+# Exit code 1 if HIGH+ issues found
+# Perfect for GitHub Actions, GitLab CI
 ```
 
-### 📱 Xcode Project Management
-Add and manage files in your Xcode project without opening Xcode:
+#### **Baseline Tracking**
 ```bash
-/xcode add-file LoginView.swift
-/xcode list-targets
+/review --baseline          # Save current state
+/review --compare          # Show only NEW issues
+# Track code quality improvements over time
 ```
 
-### 🔍 Comprehensive Code Review
-Get staff-level PR reviews with security, performance, and architecture analysis:
+#### **GitHub Issues Export**
 ```bash
-/review
-/review LoginViewController.swift
+/review --export-github
+# Create GitHub issues for HIGH+ severity findings
+# Auto-labeled by category and severity
+# Formatted markdown with code snippets
 ```
 
-### 🏠 Local-First with Ollama
-Run powerful models locally for complete privacy:
+#### **Custom Team Rules**
+```yaml
+# .flaco/rules.yaml
+rules:
+  - name: "No force unwrapping in ViewModels"
+    pattern: "class.*ViewModel.*!"
+    severity: high
+    message: "Force unwrapping in ViewModels can crash the app"
+    recommendation: "Use optional binding or ?? instead"
+```
+
+### 🏠 **Local-First with Ollama**
+Complete privacy - runs entirely on your machine:
 ```bash
-# Works with Ollama models out of the box
+export OPENAI_API_BASE="http://localhost:11434/v1"
+export OPENAI_API_KEY="ollama"
 flaco --model openai/qwen2.5-coder:32b
-```
-
-### 🎟️ Jira Integration
-Ticket-driven development made easy:
-```bash
-/jira link PROJ-123
-/jira plan
 ```
 
 ---
@@ -82,9 +107,12 @@ python3 scripts/install_flaco.py
 
 # 3. Reload your shell
 source ~/.zshrc  # or open a new terminal
+
+# 4. Verify installation
+flaco --version  # Should show v2.0.0
 ```
 
-### Your First Workflow
+### First Review
 
 ```bash
 # Navigate to your iOS project
@@ -93,583 +121,235 @@ cd ~/Projects/MyiOSApp
 # Start Flaco AI
 flaco
 
-# Generate a SwiftUI view
-/generate login for MyApp --save LoginView.swift
+# Run comprehensive review
+/review
 
-# Add to Xcode project
-/xcode add-file LoginView.swift
-
-# Review the code
-/review LoginView.swift
-
-# Done! 🎉
+# Or review specific files
+/review LoginViewController.swift
 ```
 
 ---
 
-## 🎯 Key Features
+## 📊 Analyzer Coverage
 
-### 📸 Screenshot to SwiftUI Code
+### Built-in Analyzers
 
-Convert design mockups to working SwiftUI code:
+| Analyzer | Checks | Focus |
+|----------|--------|-------|
+| **SecurityAnalyzer** | 50+ | Keychain, crypto, ATS, credentials |
+| **PerformanceAnalyzer** | 45+ | Main thread, retain cycles, Core Data |
+| **QualityAnalyzer** | 60+ | Force unwrap, error handling, naming |
+| **ArchitectureAnalyzer** | 40+ | MVC, MVVM, separation of concerns |
+| **SwiftUIAnalyzer** | 40+ | View body size, @State, @ViewBuilder |
+| **IOSVersionAnalyzer** | 55+ | Deprecated APIs, version compatibility |
+| **IOSSymbolsAnalyzer** | 30+ | SF Symbols deprecation, alternatives |
+| **IOSHIGAnalyzer** | 35+ | Button sizes, spacing, accessibility |
+| **IOSPlistAnalyzer** | 20+ | Privacy manifest, permissions |
+| **SPMAnalyzer** | 25+ | Package.swift quality, dependencies |
+| **DocumentationAnalyzer** | 30+ | Missing docs, TODO quality |
 
-```bash
-# Basic conversion
-/screenshot mockup.png
+**Total: 405+ automated checks**
 
-# Save directly to file
-/screenshot design.jpg --save OnboardingView.swift
+---
 
-# Preview analysis without code
-/screenshot ui-design.png --preview
+## 💻 Usage Examples
 
-# Full workflow
-/screenshot login_mockup.png --save LoginView.swift
-/xcode add-file LoginView.swift
-```
-
-**Supports:**
-- PNG, JPG, JPEG, PDF formats
-- GPT-4V, Claude 3, Gemini vision models
-- Accurate layout, colors, spacing
-- SF Symbols detection
-- Production-ready code
-
-### 🎨 SwiftUI Template Generation
-
-5 professional SwiftUI templates:
-
-```bash
-# Login View
-/generate login for FitApp
-
-# Settings View
-/generate settings
-
-# List View with CRUD
-/generate list of workouts
-
-# Detail View
-/generate detail for workout
-
-# TabView Navigation
-/generate tabview
-```
-
-**All templates include:**
-- Modern SwiftUI best practices (iOS 15+)
-- Proper state management
-- SF Symbols
-- #Preview for testing
-- Accessibility labels
-- Clean, well-commented code
-
-### 📱 Xcode Project Management
-
-Manage your Xcode project from the terminal:
-
-```bash
-# Show project info
-/xcode
-
-# List all targets
-/xcode list-targets
-
-# List files in target
-/xcode list-files MyApp
-
-# Add file to project
-/xcode add-file NewView.swift
-
-# Add to specific target
-/xcode add-file Feature.swift MyAppTests
-
-# Remove file
-/xcode remove-file OldView.swift
-```
-
-**Features:**
-- Auto-discovers Xcode projects
-- Smart source file detection
-- Preserves project structure
-- Multi-target support
-
-### 🔍 Advanced Code Review
-
-Get comprehensive PR-style reviews:
-
+### Basic Review
 ```bash
 # Review entire project
 /review
 
 # Review specific file
-/review LoginViewController.swift
+/review MyViewModel.swift
 
-# Focus on specific aspects
+# Security-focused review only
 /review --security
-/review --performance
-/review --architecture
 
-# Save review report
-/review --save review_report.md
+# Save report to file
+/review --save report.md
 ```
 
-**Analysis includes:**
-- Security vulnerabilities (OWASP Top 10)
-- Performance bottlenecks
-- Code quality issues
-- Architecture suggestions
-- iOS best practices
-- HIG compliance
+### Professional Workflows
 
-### 🎟️ Jira-Driven Development
-
-Work ticket-first with Jira integration:
-
-```bash
-# Link to Jira ticket
-/jira link PROJ-123
-
-# Generate implementation plan
-/jira plan
-
-# Create issue from code
-/jira create
-
-# View ticket details
-/jira show PROJ-456
+#### **CI/CD Pipeline** (GitHub Actions)
+```yaml
+# .github/workflows/code-review.yml
+name: Code Review
+on: [pull_request]
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Flaco AI
+        run: |
+          git clone https://github.com/RouraIO/flaco.cli
+          cd flaco.cli && python3 scripts/install_flaco.py
+      - name: Run Review
+        run: |
+          source ~/.zshrc
+          cd $GITHUB_WORKSPACE
+          flaco --model openai/qwen2.5-coder:32b << EOF
+          /review --ci
+          EOF
 ```
 
-### 🧠 Project Memory
-
-Flaco AI learns your project:
-
+#### **Track Progress Over Time**
 ```bash
-# Initialize project memory
-/init
+# Week 1: Establish baseline
+/review --baseline
 
-# Add project-specific rules
-/memory note "We use MVVM architecture"
-/memory note "All API calls go through NetworkManager"
+# Week 2: Check new issues
+/review --compare
+# Output: 15 new issues, 8 fixed, 42 unchanged
 
-# View project memory
-/memory show
+# Export new issues to GitHub
+/review --compare --export-github
 ```
 
----
-
-## 🛠️ Complete Workflow Example
-
-### From Mockup to Production
-
+#### **Interactive Fixes**
 ```bash
-# 1. Start with a design
-/screenshot onboarding.png --save OnboardingView.swift
+/review --fix
 
-# 2. Add to Xcode
-/xcode add-file OnboardingView.swift
-
-# 3. Review the code
-/review OnboardingView.swift
-
-# 4. Make changes (if needed)
-> Update the OnboardingView to use our custom color palette
-
-# 5. Commit with good message
-/commit-msg
-
-# 6. Link to Jira
-/jira link PROJ-789
-
-# 7. Push to GitHub
-> /git push
-
-# Done! Design → Production in minutes
+# Output:
+# ========================================
+# File: LoginViewModel.swift:42
+# Issue: Force unwrapping [HIGH]
+# Fix: Replace ! with optional binding
+#
+# Before: let user = fetchUser()!
+# After:  guard let user = fetchUser() else { return }
+#
+# Apply this fix? [y/n/q] y
+# ✓ Fix applied
 ```
 
-### Rapid Prototyping
-
+#### **Custom Team Rules**
 ```bash
-# Generate multiple screens
-/generate login --save LoginView.swift
-/generate settings --save SettingsView.swift
-/generate list of tasks --save TaskListView.swift
-/generate tabview --save MainTabView.swift
+# Create .flaco/rules.yaml
+cat > .flaco/rules.yaml << EOF
+rules:
+  - name: "All ViewModels must use @Observable"
+    pattern: "class.*ViewModel(?!.*@Observable)"
+    severity: medium
+    message: "ViewModels should use @Observable for iOS 17+"
+    file_extension: swift
+EOF
 
-# Add all to Xcode
-/xcode add-file LoginView.swift
-/xcode add-file SettingsView.swift
-/xcode add-file TaskListView.swift
-/xcode add-file MainTabView.swift
-
-# Review the app structure
+# Rules automatically applied
 /review
-
-# Boom! Full app skeleton ready
+# Running custom rules from rules.yaml...
+# Loaded 1 custom rules from .flaco/rules.yaml
 ```
 
 ---
 
-## 🏠 Local LLM Setup (Ollama)
+## 🎯 Review Output Format
 
-Run Flaco AI completely offline with Ollama:
+```markdown
+## 📊 Executive Summary
+Project has good architecture but needs attention to force unwrapping
+patterns and missing error handling in network layer.
 
-### Install Ollama
+## 🚨 Critical Issues (Must Fix Before Shipping)
+- **LoginViewController.swift:142** - Hardcoded API key in source code
+  - **Impact**: Security breach - API key exposed in version control
+  - **Fix**: Move to Keychain or environment variable
 
-```bash
-# macOS
-brew install ollama
+## ⚠️ High-Priority Improvements
+- **ProfileViewModel.swift:89** - Force unwrapping user data
+  - **Impact**: App will crash if user is nil
+  - **Fix**: Use guard let or if let binding
 
-# Start Ollama service
-ollama serve
+## 💡 Medium-Priority Improvements
+- **NetworkManager.swift:234** - Missing error handling in catch block
+  - **Fix**: Add proper error logging and user notification
+
+## ✅ What's Working Well
+- Clean MVVM architecture with proper separation
+- Good use of async/await for networking
+- Comprehensive SwiftUI previews
+
+## 🎯 Recommendations
+1. Implement error handling strategy across network layer
+2. Add crash analytics to track force unwrap failures
+3. Consider migrating to @Observable for iOS 17+
 ```
 
-### Pull Recommended Models
+---
 
+## 🔧 Configuration
+
+### Ollama Setup (Local Models)
 ```bash
-# Best for iOS development (32B parameters)
+# Install Ollama
+curl https://ollama.ai/install.sh | sh
+
+# Pull recommended model
 ollama pull qwen2.5-coder:32b
 
-# Faster alternative (16B parameters)
-ollama pull deepseek-coder-v2:16b
-
-# With reasoning capabilities
-ollama pull deepseek-r1:32b
-```
-
-### Configure Flaco AI
-
-```bash
-# Set Ollama as API endpoint
+# Configure Flaco AI
 export OPENAI_API_BASE="http://localhost:11434/v1"
 export OPENAI_API_KEY="ollama"
 
-# Run Flaco with local model
-flaco --model openai/qwen2.5-coder:32b
-```
-
-### Remote Ollama
-
-```bash
-# Use Ollama on another machine
+# For remote Ollama server
 export OPENAI_API_BASE="http://192.168.1.100:11434/v1"
-flaco --model openai/qwen2.5-coder:32b
 ```
+
+### Custom Rules Location
+Flaco AI automatically searches for custom rules in:
+1. `.flaco/rules.yaml` (recommended)
+2. `.flacoai/rules.yaml`
+3. `flaco-rules.yaml` (project root)
+
+### Baseline Storage
+Baselines are stored in `.flaco/baselines/current.json`
 
 ---
 
-## 📚 All Commands
+## 📚 Documentation
 
-### Code Generation
-```bash
-/generate <template> [prompt]      # Generate SwiftUI from template
-/screenshot <image> [--save]       # Convert screenshot to SwiftUI
-```
-
-### Project Management
-```bash
-/xcode                             # Show project info
-/xcode list-targets                # List all targets
-/xcode add-file <path> [target]   # Add file to project
-/xcode remove-file <path>          # Remove file from project
-```
-
-### Code Review & Analysis
-```bash
-/review [file]                     # Comprehensive code review
-/review --security                 # Security-focused review
-/review --performance              # Performance analysis
-/init                              # Initialize project memory
-```
-
-### Jira Integration
-```bash
-/jira link <KEY>                   # Link to Jira ticket
-/jira plan                         # Generate implementation plan
-/jira create                       # Create Jira issue
-/jira show <KEY>                   # View ticket details
-```
-
-### Git & Commits
-```bash
-/commit-msg                        # Generate commit message
-/diff                              # Natural language diff summary
-/git <command>                     # Run git commands
-```
-
-### Modes
-```bash
-/mode architect                    # Design-focused mode
-/mode bugfix                       # Debugging mode
-/mode refactor                     # Code quality mode
-```
-
-### Utilities
-```bash
-/help                              # Show all commands
-/model <name>                      # Switch AI model
-/memory note <text>                # Add to project memory
-/tour                              # Generate codebase tour
-/standup                           # Daily standup summary
-```
-
----
-
-## 🎨 SwiftUI Templates
-
-### Login View
-```bash
-/generate login for MyApp
-```
-- Email/password fields
-- Loading states
-- Error handling
-- Forgot password link
-- Sign up navigation
-
-### Settings View
-```bash
-/generate settings
-```
-- Toggle switches
-- Navigation links
-- Account management
-- App info section
-
-### List View
-```bash
-/generate list of tasks
-```
-- Search functionality
-- Add/delete operations
-- Pull to refresh
-- Empty state
-- Swipe actions
-
-### Detail View
-```bash
-/generate detail for task
-```
-- Image header
-- Metadata display
-- Edit/share/delete
-- Confirmation alerts
-
-### TabView
-```bash
-/generate tabview
-```
-- 4 customizable tabs
-- SF Symbols icons
-- Tab navigation
-
----
-
-## 📸 Vision Model Support
-
-For screenshot-to-code conversion:
-
-### Recommended Models
-- **GPT-4o** - Most accurate (OpenAI)
-- **Claude 3 Opus** - Great design understanding (Anthropic)
-- **Claude 3 Sonnet** - Fast, good quality (Anthropic)
-- **Gemini Pro Vision** - Good alternative (Google)
-
-### Switch Models
-```bash
-/model gpt-4o
-/model claude-3-opus
-/model gemini-pro-vision
-```
-
----
-
-## ⚙️ Configuration
-
-### Setup Wizard
-
-Interactive setup on first run:
-
-```bash
-flaco --setup
-```
-
-Configures:
-- Ollama or cloud API
-- Model selection
-- Jira credentials (optional)
-- Git settings
-- Color theme
-
-### Manual Configuration
-
-Edit `~/.flacoai.conf.yml`:
-
-```yaml
-# Model Configuration
-model: openai/qwen2.5-coder:32b
-api-base: http://localhost:11434/v1
-
-# UI Configuration
-assistant-output-color: "#00FFFF"
-dark-mode: true
-
-# Jira Configuration
-jira-url: https://yourcompany.atlassian.net
-jira-email: your@email.com
-
-# Git Configuration
-auto-commits: true
-```
-
----
-
-## 🎯 Why Flaco AI for iOS Development?
-
-### Speed
-- Generate SwiftUI views in seconds
-- Convert designs to code instantly
-- Manage Xcode without context switching
-
-### Quality
-- Production-ready code
-- iOS best practices built-in
-- Comprehensive code reviews
-
-### Privacy
-- Local LLM support via Ollama
-- No cloud required
-- Your code stays on your machine
-
-### Integration
-- Works with your existing workflow
-- Xcode project management
-- Jira ticket tracking
-- Git integration
-
----
-
-## 📦 Requirements
-
-- **Python**: 3.10 - 3.14 (3.14 recommended)
-- **OS**: macOS or Linux
-- **Git**: Required
-- **Xcode**: For iOS development (optional for Flaco AI itself)
-
-### Optional
-- **Ollama**: For local models
-- **Jira Account**: For ticket integration
-- **Vision Model**: For screenshot conversion (GPT-4V, Claude 3, etc.)
-
----
-
-## 🚢 Deployment Workflow
-
-### TestFlight Integration (Coming Soon)
-
-```bash
-/testflight upload
-```
-
-### Figma Integration (Coming Soon)
-
-```bash
-/figma import <url>
-```
+- **Command Reference**: Type `/help` in Flaco AI
+- **Custom Rules Guide**: See [Custom Rules](docs/CUSTOM_RULES.md) (coming soon)
+- **CI/CD Integration**: See [CI/CD Guide](docs/CICD.md) (coming soon)
+- **Troubleshooting**: See [FAQ](docs/FAQ.md) (coming soon)
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We welcome contributions! Areas to help:
+- Add more analyzer checks
+- Improve auto-fix capabilities
+- Add support for more iOS frameworks
+- Write documentation and guides
 
-### Development Setup
-
-```bash
-# Clone repository
-git clone https://github.com/RouraIO/flaco.cli.git
-cd flaco.cli
-
-# Install in development mode
-pip install -e .
-
-# Run tests
-pytest tests/
-```
-
----
-
-## 📝 Documentation
-
-- [Installation Guide](docs/installation.md)
-- [Command Reference](docs/commands.md)
-- [SwiftUI Templates](docs/templates.md)
-- [Xcode Integration](docs/xcode.md)
-- [Vision Models](docs/vision.md)
-- [Jira Integration](docs/jira.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
----
-
-## 🌟 Showcase
-
-### What Developers Are Building
-
-- 🏋️ Fitness tracking apps
-- 📱 Social media platforms
-- 🎮 Mobile games
-- 📊 Business dashboards
-- 🛍️ E-commerce apps
-
----
-
-## 📊 Project Status
-
-**Current Version**: v1.4.0
-
-### Recent Releases
-- ✅ v1.4.0 - Screenshot-to-Code conversion
-- ✅ v1.3.0 - Xcode project manipulation
-- ✅ v1.2.0 - SwiftUI template generation
-- ✅ v1.1.0 - UI improvements
-
-### Coming Soon (v2.0.0)
-- 🎨 iOS-specific branding
-- 🔍 Advanced PR-style reviews with Jira intelligence
-- 🍎 SF Symbols integration
-- 📐 Apple HIG validation
-- 🔒 iOS security scanning
-- 🎨 Figma-to-SwiftUI converter
-- 🚀 TestFlight integration
-- 📚 Comprehensive documentation
-- 🧪 Full test coverage
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-Built with:
-- [Claude](https://claude.ai) by Anthropic
-- [OpenAI GPT-4](https://openai.com)
-- [Ollama](https://ollama.ai) for local models
-- Based on [Aider](https://github.com/paul-gauthier/aider)
+- Built on top of [Aider](https://github.com/paul-gauthier/aider)
+- Powered by Claude AI and Ollama
+- Inspired by the iOS development community
 
 ---
 
 ## 🔗 Links
 
-- **GitHub**: https://github.com/RouraIO/flaco.cli
+- **Repository**: https://github.com/RouraIO/flaco.cli
 - **Issues**: https://github.com/RouraIO/flaco.cli/issues
-- **Releases**: https://github.com/RouraIO/flaco.cli/releases
+- **Discussions**: https://github.com/RouraIO/flaco.cli/discussions
 
 ---
 
-**Made with ❤️ for iOS developers**
+**Made with ❤️ for iOS Developers**
 
-🍎 Build amazing iOS apps. Fast. 🚀
+*Catch bugs before they catch you.*
