@@ -1647,6 +1647,184 @@ class Commands:
             if self.verbose:
                 traceback.print_exc()
 
+    def cmd_screenshot(self, args):
+        """Convert UI screenshot to SwiftUI code
+
+        /screenshot <image_path>              - Convert screenshot to SwiftUI
+        /screenshot <image_path> --save <file> - Save generated code to file
+        /screenshot <image_path> --preview     - Show analysis without generating code
+
+        Examples:
+          /screenshot mockup.png
+          /screenshot design.jpg --save LoginView.swift
+          /screenshot ui_design.png --preview
+
+        Supported formats: PNG, JPG, JPEG, PDF
+        """
+        self._track_command("screenshot")
+
+        import base64
+        from pathlib import Path
+
+        # Parse arguments
+        args_parts = args.strip().split() if args.strip() else []
+
+        if not args_parts:
+            self.io.tool_error("Usage: /screenshot <image_path> [--save <file>] [--preview]")
+            self.io.tool_output("\nExamples:")
+            self.io.tool_output("  /screenshot mockup.png")
+            self.io.tool_output("  /screenshot design.jpg --save LoginView.swift")
+            return
+
+        # Extract image path
+        image_path = args_parts[0]
+
+        # Extract flags
+        save_file = None
+        preview_mode = "--preview" in args_parts
+
+        if "--save" in args_parts:
+            save_idx = args_parts.index("--save")
+            if save_idx + 1 < len(args_parts):
+                save_file = args_parts[save_idx + 1]
+
+        # Validate image file exists
+        image_path = Path(image_path)
+        if not image_path.exists():
+            self.io.tool_error(f"Image file not found: {image_path}")
+            return
+
+        # Validate file format
+        supported_formats = ['.png', '.jpg', '.jpeg', '.pdf']
+        if image_path.suffix.lower() not in supported_formats:
+            self.io.tool_error(f"Unsupported format: {image_path.suffix}")
+            self.io.tool_output(f"Supported formats: {', '.join(supported_formats)}")
+            return
+
+        # Check if current model supports vision
+        from flacoai.coders.screenshot_coder import ScreenshotCoder
+        from flacoai.coders.base_coder import Coder
+
+        # Create screenshot coder
+        try:
+            coder = Coder.create(
+                io=self.io,
+                from_coder=self.coder,
+                edit_format="ask",
+                summarize_from_coder=False,
+            )
+
+            # Check vision support
+            screenshot_coder = ScreenshotCoder(
+                main_model=coder.main_model,
+                io=self.io,
+            )
+
+            if not screenshot_coder.supports_vision():
+                self.io.tool_error(
+                    f"Current model ({coder.main_model.name}) does not support vision/images"
+                )
+                self.io.tool_output("\nVision-capable models:")
+                self.io.tool_output("  • gpt-4-vision-preview")
+                self.io.tool_output("  • gpt-4-turbo (gpt-4-turbo-2024-04-09)")
+                self.io.tool_output("  • gpt-4o")
+                self.io.tool_output("  • claude-3-opus")
+                self.io.tool_output("  • claude-3-sonnet")
+                self.io.tool_output("\nSwitch model with: /model gpt-4o")
+                return
+
+            # Read and encode image
+            self.io.tool_output(f"📸 Analyzing screenshot: {image_path.name}")
+
+            # Create message with image
+            if preview_mode:
+                prompt = f"""Analyze this UI screenshot and describe:
+1. Overall layout and structure
+2. All UI elements (buttons, text fields, labels, etc.)
+3. Colors and styling
+4. Spacing and alignment
+5. Any recognizable iOS patterns
+
+Provide a detailed analysis but do NOT generate SwiftUI code."""
+            else:
+                prompt = f"""Analyze this UI screenshot and generate SwiftUI code that recreates the design.
+
+Include:
+- Accurate layout structure (VStack, HStack, ZStack)
+- All UI elements with proper styling
+- Colors, fonts, spacing matching the design
+- SF Symbols for icons where appropriate
+- @State for interactive elements
+- #Preview for testing
+
+Make the code production-ready and compilable."""
+
+            # Add image to the message
+            # Note: The actual image handling will be done by the model/io layer
+            # For now, we'll add the image path as a special marker
+            full_prompt = f"[IMAGE: {image_path.absolute()}]\n\n{prompt}"
+
+            # Send to model
+            messages = [
+                {"role": "user", "content": full_prompt}
+            ]
+
+            # Get response
+            self.io.tool_output("🤖 Generating SwiftUI code from screenshot...")
+
+            # Use the coder to send the message
+            # The model will handle the image if it supports vision
+            response_text = coder.send_with_retries(messages=messages)
+
+            # Display response
+            if preview_mode:
+                self.io.tool_output("\n" + "=" * 80)
+                self.io.tool_output("📊 Screenshot Analysis:\n")
+                self.io.tool_output(response_text)
+                self.io.tool_output("=" * 80 + "\n")
+            else:
+                # Save to file if requested
+                if save_file:
+                    # Extract code from response
+                    # Look for Swift code blocks
+                    import re
+                    code_blocks = re.findall(r'```swift\n(.*?)\n```', response_text, re.DOTALL)
+
+                    if code_blocks:
+                        swift_code = code_blocks[0]
+
+                        # Ensure .swift extension
+                        save_path = Path(save_file)
+                        if not save_path.suffix:
+                            save_path = save_path.with_suffix('.swift')
+
+                        # Write to file
+                        with open(save_path, 'w', encoding='utf-8') as f:
+                            f.write(swift_code)
+
+                        self.io.tool_output(f"✅ Saved SwiftUI code to: {save_path}")
+                        self.io.tool_output(f"\n💡 Add to Xcode: /xcode add-file {save_path}")
+                    else:
+                        self.io.tool_error("No Swift code found in response")
+                        self.io.tool_output("\nFull response:")
+                        self.io.tool_output(response_text)
+                else:
+                    # Display code
+                    self.io.tool_output("\n" + "=" * 80)
+                    self.io.tool_output(response_text)
+                    self.io.tool_output("=" * 80 + "\n")
+
+                    self.io.tool_output("💡 Next steps:")
+                    self.io.tool_output("  1. Review and test the generated code")
+                    self.io.tool_output("  2. Adjust colors/spacing to match your design")
+                    self.io.tool_output("  3. Use --save <filename> to save to file")
+
+        except Exception as e:
+            self.io.tool_error(f"Error processing screenshot: {e}")
+            import traceback
+            if self.verbose:
+                traceback.print_exc()
+
     def cmd_review(self, args):
         """Perform comprehensive code review
 
