@@ -1,0 +1,23 @@
+# Flaco AI License Server Requirements
+
+# Web framework
+flask==3.0.0
+flask-cors==4.0.0
+
+# Stripe integration
+stripe>=14.0.0
+
+# Email delivery (choose one)
+sendgrid==6.11.0  # Recommended
+# OR use SMTP (built-in to Python)
+
+# Database (optional - for license storage)
+# psycopg2-binary==2.9.9  # PostgreSQL
+# sqlalchemy==2.0.23
+
+# Deployment
+gunicorn==21.2.0  # Production WSGI server
+python-dotenv==1.0.0  # Environment variable management
+
+# Monitoring (optional)
+sentry-sdk[flask]==1.39.1  # Error tracking
