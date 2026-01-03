@@ -205,6 +205,34 @@ def format_stats(files_count=0, commits_count=0, session_duration=None):
     return "No activity yet"
 
 
+def format_directory_note(current_dir, git_dir):
+    """Format the directory note shown below the header.
+
+    Args:
+        current_dir: Current working directory
+        git_dir: Git working directory (repo root)
+
+    Returns:
+        Formatted note string with yellow triangle icon
+    """
+    from pathlib import Path
+
+    # Shorten paths with ~
+    home = str(Path.home())
+    if current_dir.startswith(home):
+        current_dir = '~' + current_dir[len(home):]
+    if git_dir and git_dir.startswith(home):
+        git_dir = '~' + git_dir[len(home):]
+
+    note_lines = []
+    note_lines.append("⚠️  Note: in-chat filenames are always relative to the git working dir, not the current working dir.")
+    note_lines.append(f"Cur working dir: {current_dir}")
+    if git_dir and git_dir != current_dir:
+        note_lines.append(f"Git working dir: {git_dir}")
+
+    return "\n".join(note_lines)
+
+
 def format_compact_header(model_name, edit_format, directory, branch=None, file_count=0,
                          thinking_tokens=None, reasoning_effort=None, cache_enabled=False,
                          infinite_output=False, repo_map_tokens=None, repo_map_refresh=None):
@@ -226,6 +254,10 @@ def format_compact_header(model_name, edit_format, directory, branch=None, file_
     Returns:
         Formatted header string (3 lines with labels)
     """
+    # Strip "openai/" prefix for local models (cleaner display)
+    if model_name.startswith("openai/"):
+        model_name = model_name[7:]  # Remove "openai/" prefix
+
     # Build model info with extras
     model_info = f"{model_name}"
     extras = []

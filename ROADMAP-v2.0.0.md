@@ -285,7 +285,85 @@
 
 ---
 
-## 🧪 Phase 8: Comprehensive Testing Suite
+## 📚 Phase 8: Project-Wide Documentation & Maintainer Guide
+
+**Release**: v2.0.0-beta.4
+
+**Goals**: Document everything for current users AND future maintainers
+
+### Core Features
+- [ ] **Inline Code Documentation**
+  - [ ] Add docstrings to all public functions/classes
+  - [ ] Document complex algorithms and logic
+  - [ ] Add type hints throughout codebase
+  - [ ] Document environment variables and config options
+  - [ ] Add usage examples in docstrings
+
+- [ ] **Architecture Documentation**
+  - [ ] Create ARCHITECTURE.md (system design overview)
+  - [ ] Document module structure and dependencies
+  - [ ] Explain data flow (user input → LLM → code changes)
+  - [ ] Document plugin/extension system
+  - [ ] Diagram key subsystems (coders, commands, integrations)
+
+- [ ] **Maintainer Onboarding Guide (MAINTAINER_GUIDE.md)**
+  - [ ] **"State of the Codebase"** assessment
+    - [ ] Code that works but uses old standards (needs modernization)
+    - [ ] Code that's unreliable/crashes (needs fixes)
+    - [ ] Code that's great but undocumented (needs docs)
+    - [ ] Known technical debt with priority levels
+  - [ ] **Module-by-Module Breakdown**
+    - [ ] What each module does
+    - [ ] Health rating (🟢 excellent, 🟡 needs work, 🔴 critical)
+    - [ ] Known issues and gotchas
+    - [ ] Suggested improvements with effort estimates
+  - [ ] **Common Maintenance Tasks**
+    - [ ] How to add a new command
+    - [ ] How to add a new coder type
+    - [ ] How to add a new integration (Jira, GitHub, etc.)
+    - [ ] How to update LLM prompts
+    - [ ] How to add new SwiftUI templates
+  - [ ] **Testing Strategy**
+    - [ ] How to run tests
+    - [ ] How to add new tests
+    - [ ] What's tested vs. what needs tests
+  - [ ] **Release Process**
+    - [ ] Version numbering strategy
+    - [ ] How to cut a release
+    - [ ] How to update documentation
+  - [ ] **Generated Issue Backlog**
+    - [ ] Auto-generate GitHub issues for known problems
+    - [ ] Tag with effort estimates and priority
+    - [ ] Link to relevant code sections
+
+- [ ] **User Documentation**
+  - [ ] Comprehensive command reference
+  - [ ] iOS-specific workflow guides
+  - [ ] Troubleshooting guide
+  - [ ] FAQ section
+  - [ ] Video tutorials (optional)
+
+- [ ] **API Documentation**
+  - [ ] Generate API docs from docstrings
+  - [ ] Document public APIs for extensions
+  - [ ] Document configuration file format
+  - [ ] Document hook system
+
+### Deliverables
+- [ ] ARCHITECTURE.md (system design)
+- [ ] MAINTAINER_GUIDE.md (codebase health + onboarding)
+- [ ] API_REFERENCE.md (auto-generated from docstrings)
+- [ ] TROUBLESHOOTING.md (common issues + fixes)
+- [ ] Auto-generated GitHub issues for technical debt
+- [ ] Inline docstrings for 80%+ of code
+
+**Exit Criteria**: A new developer can read MAINTAINER_GUIDE.md and understand the entire codebase in 2-3 hours. All known issues are documented with clear remediation plans.
+
+**Estimated Time**: 6-8 days
+
+---
+
+## 🧪 Phase 9: Comprehensive Testing Suite
 
 **Release**: v2.0.0-rc.1 (Release Candidate)
 
@@ -343,7 +421,7 @@
 
 ---
 
-## 🏁 Phase 9: Documentation, Polish & Release
+## 🏁 Phase 10: Final Polish & Release
 
 **Release**: v2.0.0 (Official)
 
@@ -393,10 +471,11 @@
 | 5 - Review System | v2.0.0-beta.1 | 5-7 days | 30 days |
 | 6 - iOS Features | v2.0.0-beta.2 | 6-8 days | 38 days |
 | 7 - Integrations | v2.0.0-beta.3 | 7-10 days | 48 days |
-| 8 - Testing | v2.0.0-rc.1 | 5-7 days | 55 days |
-| 9 - Release | v2.0.0 | 3-5 days | **~60 days** |
+| 8 - Documentation | v2.0.0-beta.4 | 6-8 days | 56 days |
+| 9 - Testing | v2.0.0-rc.1 | 5-7 days | 63 days |
+| 10 - Release | v2.0.0 | 3-5 days | **~68 days** |
 
-**Total estimated time**: 8-9 weeks to fully-featured, thoroughly-tested, rock-solid v2.0.0
+**Total estimated time**: 9-10 weeks to fully-featured, fully-documented, thoroughly-tested, rock-solid v2.0.0
 
 ---
 

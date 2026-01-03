@@ -324,6 +324,16 @@ class Coder:
         lines.append("")
         lines.append(f"💡 {get_random_tip()}")
 
+        # Working directory info section (moved inside header)
+        from flacoai.branding import format_directory_note
+        git_root = None
+        if self.repo and hasattr(self.repo, 'root'):
+            git_root = str(self.repo.root)
+
+        lines.append("")
+        directory_note = format_directory_note(os.getcwd(), git_root)
+        lines.extend(directory_note.split("\n"))
+
         return lines
 
     ok_to_warm_cache = False
