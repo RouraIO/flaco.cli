@@ -1,0 +1,49 @@
+import SwiftUI
+
+struct {VIEW_NAME}: View {
+    @State private var selectedTab: Tab = .{DEFAULT_TAB}
+
+    enum Tab {
+        case {TAB1}
+        case {TAB2}
+        case {TAB3}
+        case {TAB4}
+    }
+
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            // Tab 1
+            {TAB1_VIEW}()
+                .tabItem {
+                    Label("{TAB1_LABEL}", systemImage: "{TAB1_ICON}")
+                }
+                .tag(Tab.{TAB1})
+
+            // Tab 2
+            {TAB2_VIEW}()
+                .tabItem {
+                    Label("{TAB2_LABEL}", systemImage: "{TAB2_ICON}")
+                }
+                .tag(Tab.{TAB2})
+
+            // Tab 3
+            {TAB3_VIEW}()
+                .tabItem {
+                    Label("{TAB3_LABEL}", systemImage: "{TAB3_ICON}")
+                }
+                .tag(Tab.{TAB3})
+
+            // Tab 4
+            {TAB4_VIEW}()
+                .tabItem {
+                    Label("{TAB4_LABEL}", systemImage: "{TAB4_ICON}")
+                }
+                .tag(Tab.{TAB4})
+        }
+        .accentColor(.accentColor)
+    }
+}
+
+#Preview {
+    {VIEW_NAME}()
+}

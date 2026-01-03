@@ -42,6 +42,7 @@ STARTUP_TIPS = [
     "⚡ Type /llm to switch between local and cloud models",
     "🚀 Use /jira plan to break down a ticket into implementation steps",
     "📊 Run /standup to summarize today's work for your team",
+    "🎨 Use /generate login to create SwiftUI views from templates",
     "📝 Type /help to see all available Flaco AI commands",
 ]
 

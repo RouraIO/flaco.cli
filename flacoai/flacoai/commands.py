@@ -1419,6 +1419,106 @@ class Commands:
         if repo_map:
             self.io.tool_output("The repo map has been refreshed, use /map to view it.")
 
+    def cmd_generate(self, args):
+        """Generate SwiftUI code from templates
+
+        /generate                      - Show available templates
+        /generate login <prompt>       - Generate login view
+        /generate settings <prompt>    - Generate settings view
+        /generate list <prompt>        - Generate list view
+        /generate detail <prompt>      - Generate detail view
+        /generate tabview <prompt>     - Generate tab view
+        /generate <template> --save <file>  - Save generated code to file
+
+        Examples:
+          /generate login for MyApp
+          /generate list of tasks
+          /generate settings
+          /generate tabview with home search favorites profile
+        """
+        self._track_command("generate")
+
+        from flacoai.template_engine import TemplateEngine
+
+        engine = TemplateEngine()
+
+        # Parse arguments
+        args_parts = args.strip().split() if args.strip() else []
+
+        # Extract --save flag
+        save_file = None
+        if "--save" in args_parts:
+            save_idx = args_parts.index("--save")
+            if save_idx + 1 < len(args_parts):
+                save_file = args_parts[save_idx + 1]
+                args_parts = [a for i, a in enumerate(args_parts) if i not in [save_idx, save_idx + 1]]
+
+        # If no args, show available templates
+        if not args_parts:
+            self.io.tool_output("📝 Available SwiftUI templates:\n")
+            for template in engine.list_templates():
+                self.io.tool_output(f"  • {template['name']:12} - {template['description']}")
+            self.io.tool_output("\nUsage: /generate <template> <prompt>")
+            self.io.tool_output("Example: /generate login for MyWeatherApp")
+            return
+
+        # Extract template name
+        template_name = args_parts[0].lower()
+
+        # Validate template
+        if template_name not in engine.templates:
+            self.io.tool_error(f"Unknown template: {template_name}")
+            self.io.tool_output("\nAvailable templates:")
+            for template in engine.list_templates():
+                self.io.tool_output(f"  • {template['name']}")
+            return
+
+        # Extract prompt (everything after template name)
+        prompt = " ".join(args_parts[1:]) if len(args_parts) > 1 else template_name
+
+        # Show what we're generating
+        self.io.tool_output(f"🎨 Generating {template_name} view...")
+
+        # Generate code
+        try:
+            generated_code = engine.generate(template_name, prompt)
+
+            if generated_code is None:
+                self.io.tool_error(f"Failed to generate code from template: {template_name}")
+                return
+
+            # Save to file if requested
+            if save_file:
+                try:
+                    # Ensure .swift extension
+                    if not save_file.endswith('.swift'):
+                        save_file += '.swift'
+
+                    # Write to file
+                    with open(save_file, 'w', encoding='utf-8') as f:
+                        f.write(generated_code)
+
+                    self.io.tool_output(f"✅ Saved to: {save_file}")
+                except Exception as e:
+                    self.io.tool_error(f"Failed to save file: {e}")
+            else:
+                # Output to terminal
+                self.io.tool_output("\n" + "=" * 80)
+                self.io.tool_output(generated_code)
+                self.io.tool_output("=" * 80 + "\n")
+
+                # Show helpful next steps
+                self.io.tool_output("💡 Next steps:")
+                self.io.tool_output("  1. Copy the code above to your Xcode project")
+                self.io.tool_output("  2. Customize the TODO sections for your needs")
+                self.io.tool_output("  3. Or use --save <filename> to save directly to a file")
+
+        except Exception as e:
+            self.io.tool_error(f"Error generating code: {e}")
+            import traceback
+            if self.verbose:
+                traceback.print_exc()
+
     def cmd_review(self, args):
         """Perform comprehensive code review
 
