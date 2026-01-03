@@ -96,6 +96,57 @@ class SecurityAnalyzer(BaseAnalyzer):
             (r'(log|print|console\.log).*api[_-]?key', "API key in logs"),
         ]
 
+        # iOS/Swift-specific security patterns
+        self.ios_insecure_storage_patterns = [
+            (r'UserDefaults\.standard\.(set|setValue).*password', "Password stored in UserDefaults (insecure)"),
+            (r'UserDefaults\.standard\.(set|setValue).*token', "Token stored in UserDefaults (insecure)"),
+            (r'UserDefaults\.standard\.(set|setValue).*apiKey', "API key stored in UserDefaults (insecure)"),
+            (r'UserDefaults\.standard\.(set|setValue).*secret', "Secret stored in UserDefaults (insecure)"),
+            (r'\.write\(to:.*password', "Password written to file (insecure)"),
+        ]
+
+        self.ios_weak_crypto_patterns = [
+            (r'kCCAlgorithmDES', "Weak encryption algorithm (DES)"),
+            (r'kCCAlgorithm3DES', "Weak encryption algorithm (3DES)"),
+            (r'kCCAlgorithmRC4', "Weak encryption algorithm (RC4)"),
+            (r'CC_MD5', "Weak hash algorithm (MD5)"),
+            (r'CC_SHA1', "Weak hash algorithm (SHA1)"),
+            (r'Insecure\.SHA1', "Weak hash algorithm (SHA1)"),
+        ]
+
+        self.ios_app_transport_security_patterns = [
+            (r'NSAllowsArbitraryLoads.*true', "App Transport Security disabled"),
+            (r'NSExceptionAllowsInsecureHTTPLoads', "Insecure HTTP loads allowed"),
+            (r'NSAllowsLocalNetworking.*true', "Local networking allowed (review necessity)"),
+        ]
+
+        self.ios_url_scheme_patterns = [
+            (r'canOpenURL.*without.*checking', "URL scheme without validation"),
+            (r'open\(.*URL.*\).*user.*input', "Opening URL with user input (potential injection)"),
+        ]
+
+        self.ios_keychain_patterns = [
+            (r'kSecAttrAccessibleAlways(?!ThisDeviceOnly)', "Keychain item accessible always (weak)"),
+            (r'kSecAttrAccessibleWhenUnlocked(?!ThisDeviceOnly)', "Keychain without device-only protection"),
+        ]
+
+        self.ios_debug_patterns = [
+            (r'#if\s+DEBUG\s*$(?!.*#endif)', "Debug code block without endif"),
+            (r'assert\(', "Assert statement (should be DEBUG only)"),
+            (r'fatalError\(["\'][^"\']*TODO', "TODO fatalError in code"),
+        ]
+
+        self.ios_webview_patterns = [
+            (r'evaluateJavaScript.*user.*input', "WebView JavaScript injection risk"),
+            (r'WKUserScript.*user.*input', "User script injection risk"),
+            (r'loadHTMLString.*user.*input', "HTML injection in WebView"),
+        ]
+
+        self.ios_certificate_pinning_patterns = [
+            (r'URLSession.*without.*pinning', "URLSession without certificate pinning"),
+            (r'serverTrustPolicy.*None', "Server trust policy disabled"),
+        ]
+
     def analyze_file(self, file_path: str, content: str) -> List[AnalysisResult]:
         """Analyze a file for security vulnerabilities."""
         results = []
@@ -144,6 +195,41 @@ class SecurityAnalyzer(BaseAnalyzer):
         results.extend(self._check_patterns(file_path, content, self.logging_patterns,
                                            "Sensitive Data in Logs", Severity.MEDIUM,
                                            "Remove sensitive data from log statements"))
+
+        # iOS-specific checks
+        ext = self.get_file_extension(file_path)
+        if ext in ('swift', 'm', 'mm', 'plist', 'xml'):
+            results.extend(self._check_patterns(file_path, content, self.ios_insecure_storage_patterns,
+                                               "Insecure iOS Data Storage", Severity.CRITICAL,
+                                               "Use Keychain for sensitive data instead of UserDefaults or files"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_weak_crypto_patterns,
+                                               "Weak iOS Cryptography", Severity.HIGH,
+                                               "Use AES-256 (kCCAlgorithmAES) and SHA-256 or better"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_app_transport_security_patterns,
+                                               "App Transport Security Issue", Severity.HIGH,
+                                               "Enable ATS and use HTTPS for all network requests"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_url_scheme_patterns,
+                                               "URL Scheme Vulnerability", Severity.HIGH,
+                                               "Validate and sanitize URL schemes before opening"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_keychain_patterns,
+                                               "Weak Keychain Protection", Severity.MEDIUM,
+                                               "Use kSecAttrAccessibleWhenUnlockedThisDeviceOnly"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_debug_patterns,
+                                               "Debug Code in Release", Severity.MEDIUM,
+                                               "Wrap debug code in #if DEBUG and remove before release"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_webview_patterns,
+                                               "WebView Injection Risk", Severity.HIGH,
+                                               "Sanitize user input before using in WebView JavaScript or HTML"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_certificate_pinning_patterns,
+                                               "Missing Certificate Pinning", Severity.MEDIUM,
+                                               "Implement certificate pinning for sensitive network requests"))
 
         return results
 

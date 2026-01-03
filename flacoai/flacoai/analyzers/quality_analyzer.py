@@ -49,6 +49,48 @@ class QualityAnalyzer(BaseAnalyzer):
             (r'class\s+[a-z]', "Lowercase class name"),
         ]
 
+        # iOS/Swift-specific quality patterns
+        self.ios_force_unwrap_patterns = [
+            (r'!\s*(?!\(|=)', "Force unwrap (!) used"),
+            (r'as!\s+\w+', "Force downcast (as!) used"),
+            (r'try!\s+', "Force try (try!) used"),
+        ]
+
+        self.ios_implicitly_unwrapped_patterns = [
+            (r'var\s+\w+:\s*\w+!', "Implicitly unwrapped optional (!)"),
+            (r'let\s+\w+:\s*\w+!', "Implicitly unwrapped optional (!)"),
+        ]
+
+        self.ios_swiftui_patterns = [
+            (r'var\s+body:\s*some\s+View\s*\{(?:[^}]{500,})\}', "Large SwiftUI body (>500 chars)"),
+            (r'@State\s+var\s+\w+.*=.*\n.*@State', "Multiple @State vars (consider @StateObject or view model)"),
+            (r'View\s*\{[^}]*(if|switch).*\{[^}]*(if|switch)', "Deeply nested conditionals in View"),
+        ]
+
+        self.ios_accessibility_patterns = [
+            (r'Button\([^)]*\)(?!.*accessibility)', "Button without accessibility label"),
+            (r'Image\([^)]*\)(?!.*accessibility)', "Image without accessibility label"),
+            (r'\.onTapGesture(?!.*accessibility)', "Custom gesture without accessibility"),
+        ]
+
+        self.ios_naming_patterns = [
+            (r'class\s+[a-z]', "Swift class should start with uppercase"),
+            (r'struct\s+[a-z]', "Swift struct should start with uppercase"),
+            (r'enum\s+[a-z]', "Swift enum should start with uppercase"),
+            (r'protocol\s+[a-z]', "Swift protocol should start with uppercase"),
+            (r'func\s+[A-Z]', "Swift function should start with lowercase"),
+        ]
+
+        self.ios_documentation_patterns = [
+            (r'public\s+(func|var|let|class|struct|enum)(?!.*///)(?!.*\*/)', "Public API without documentation"),
+            (r'open\s+(func|var|let|class)(?!.*///)(?!.*\*/)', "Open declaration without documentation"),
+        ]
+
+        self.ios_error_handling_patterns = [
+            (r'catch\s*\{[^}]*\}', "Empty or generic catch block"),
+            (r'do\s*\{[^}]*\}\s*catch\s*\{\s*\}', "Empty catch block"),
+        ]
+
     def analyze_file(self, file_path: str, content: str) -> List[AnalysisResult]:
         """Analyze a file for quality issues."""
         results = []
@@ -76,6 +118,37 @@ class QualityAnalyzer(BaseAnalyzer):
 
         # Check cyclomatic complexity
         results.extend(self._check_cyclomatic_complexity(file_path, content))
+
+        # iOS/Swift-specific checks
+        ext = self.get_file_extension(file_path)
+        if ext in ('swift',):
+            results.extend(self._check_patterns(file_path, content, self.ios_force_unwrap_patterns,
+                                               "Force Unwrap", Severity.MEDIUM,
+                                               "Use optional binding (if let, guard let) or nil coalescing (??) instead"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_implicitly_unwrapped_patterns,
+                                               "Implicitly Unwrapped Optional", Severity.LOW,
+                                               "Avoid implicitly unwrapped optionals, use regular optionals instead"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_swiftui_patterns,
+                                               "SwiftUI Code Quality", Severity.MEDIUM,
+                                               "Break down large views, extract subviews, use @ViewBuilder"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_accessibility_patterns,
+                                               "Missing Accessibility", Severity.LOW,
+                                               "Add accessibility labels/hints for better accessibility support"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_naming_patterns,
+                                               "Swift Naming Convention", Severity.LOW,
+                                               "Follow Swift naming conventions: UpperCamelCase for types, lowerCamelCase for functions/vars"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_documentation_patterns,
+                                               "Missing Documentation", Severity.LOW,
+                                               "Add documentation comments (///) for public APIs"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_error_handling_patterns,
+                                               "Poor Error Handling", Severity.MEDIUM,
+                                               "Handle specific error cases, don't use empty catch blocks"))
 
         return results
 

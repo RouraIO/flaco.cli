@@ -54,6 +54,49 @@ class PerformanceAnalyzer(BaseAnalyzer):
             (r'"\s*\+\s*\w+\s*\+\s*"', "Multiple string concatenations"),
         ]
 
+        # iOS/Swift-specific performance patterns
+        self.ios_main_thread_patterns = [
+            (r'DispatchQueue\.main\.(sync|async)\s*\{[^}]*(URLSession|fetch|request|download)', "Network request on main thread"),
+            (r'DispatchQueue\.main.*\{[^}]*(try\s+Data\(contentsOf:|FileManager|\.write\()', "File I/O on main thread"),
+            (r'func.*\{[^}]*(URLSession|fetch).*\}(?!.*DispatchQueue)', "Synchronous network call without dispatch"),
+        ]
+
+        self.ios_tableview_patterns = [
+            (r'cellForRowAt.*\{[^}]*UITableViewCell\(\)', "Creating new cell instead of dequeuing"),
+            (r'cellForRowAt.*\{[^}]*(URLSession|\.load|fetch)', "Heavy operation in cellForRowAt"),
+            (r'numberOfRowsInSection.*\{[^}]*(\.count\s*>|filter|map)', "Heavy computation in numberOfRowsInSection"),
+        ]
+
+        self.ios_memory_patterns = [
+            (r'\[weak\s+self\](?!.*guard)', "weak self without guard (potential retain cycle)"),
+            (r'@escaping.*\{[^}]*self\.(?!weak)', "Escaping closure capturing self strongly"),
+            (r'lazy\s+var.*\{[^}]*self\.', "Lazy var capturing self (potential retain cycle)"),
+            (r'NotificationCenter.*addObserver.*\{[^}]*self\.', "Notification observer without weak self"),
+        ]
+
+        self.ios_core_data_patterns = [
+            (r'NSFetchRequest.*\{[^}]*fetchLimit\s*=\s*0', "Core Data fetch without limit"),
+            (r'NSFetchRequest.*without.*predicate', "Core Data fetch without predicate (fetching all)"),
+            (r'for.*in.*NSFetchRequest', "Fetching Core Data in loop (N+1 problem)"),
+        ]
+
+        self.ios_image_patterns = [
+            (r'UIImage\(named:.*\)(?!.*cache)', "UIImage without caching consideration"),
+            (r'UIImage\(contentsOfFile:.*large', "Loading large image synchronously"),
+            (r'imageView\.image\s*=\s*UIImage\(data:.*\)(?!.*DispatchQueue)', "Image decoding on main thread"),
+        ]
+
+        self.ios_animation_patterns = [
+            (r'UIView\.animate.*duration:\s*[0-9]+\.[0-9]{3,}', "Very long animation duration"),
+            (r'\.layer\.add\(.*animation.*\).*in.*for', "Adding animations in loop"),
+        ]
+
+        self.ios_view_patterns = [
+            (r'layoutSubviews.*\{[^}]*(for|while)', "Heavy computation in layoutSubviews"),
+            (r'draw\(_:\s*CGRect\).*\{[^}]*(for|while)', "Heavy computation in draw()"),
+            (r'viewWillAppear.*\{[^}]*(fetch|request|load.*large)', "Heavy operation in viewWillAppear"),
+        ]
+
     def analyze_file(self, file_path: str, content: str) -> List[AnalysisResult]:
         """Analyze a file for performance issues."""
         results = []
@@ -84,6 +127,37 @@ class PerformanceAnalyzer(BaseAnalyzer):
         results.extend(self._check_patterns(file_path, content, self.string_patterns,
                                            "String Inefficiency", Severity.LOW,
                                            "Use str.join() for concatenating multiple strings"))
+
+        # iOS-specific checks
+        ext = self.get_file_extension(file_path)
+        if ext in ('swift', 'm', 'mm'):
+            results.extend(self._check_patterns(file_path, content, self.ios_main_thread_patterns,
+                                               "Main Thread Blocking", Severity.HIGH,
+                                               "Move heavy operations to background queue using DispatchQueue.global()"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_tableview_patterns,
+                                               "Inefficient UITableView/UICollectionView", Severity.MEDIUM,
+                                               "Use dequeueReusableCell and move heavy operations out of cellForRowAt"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_memory_patterns,
+                                               "Potential Retain Cycle", Severity.HIGH,
+                                               "Use [weak self] in escaping closures and guard let self = self"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_core_data_patterns,
+                                               "Inefficient Core Data Usage", Severity.MEDIUM,
+                                               "Use fetch limits, predicates, and batch operations"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_image_patterns,
+                                               "Inefficient Image Loading", Severity.MEDIUM,
+                                               "Use image caching and decode images on background thread"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_animation_patterns,
+                                               "Inefficient Animation", Severity.LOW,
+                                               "Keep animations short and avoid animating in loops"))
+
+            results.extend(self._check_patterns(file_path, content, self.ios_view_patterns,
+                                               "Heavy View Operation", Severity.MEDIUM,
+                                               "Avoid heavy operations in layoutSubviews, draw(), and view lifecycle methods"))
 
         return results
 

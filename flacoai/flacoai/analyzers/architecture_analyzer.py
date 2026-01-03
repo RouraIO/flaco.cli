@@ -13,6 +13,33 @@ class ArchitectureAnalyzer(BaseAnalyzer):
         super().__init__(io, verbose)
         self.import_graph: Dict[str, Set[str]] = defaultdict(set)
 
+        # iOS/Swift-specific architecture patterns
+        self.ios_mvc_patterns = [
+            (r'class\s+\w*ViewController.*:\s*UI', "View Controller detected"),
+        ]
+
+        self.ios_singleton_patterns = [
+            (r'static\s+let\s+shared\s*=', "Singleton pattern (review necessity)"),
+            (r'static\s+var\s+shared\s*=', "Mutable singleton (anti-pattern)"),
+            (r'class\s+func\s+shared\(\)', "Singleton accessor"),
+        ]
+
+        self.ios_tight_coupling_patterns = [
+            (r'import\s+UIKit.*\n.*class.*ViewModel', "UIKit imported in ViewModel (tight coupling)"),
+            (r'import\s+SwiftUI.*\n.*class.*(?!View)', "SwiftUI in non-View class (tight coupling)"),
+        ]
+
+        self.ios_dependency_injection_patterns = [
+            (r'URLSession\.shared', "Using URLSession.shared (consider DI)"),
+            (r'NotificationCenter\.default', "Using NotificationCenter.default (consider DI)"),
+            (r'FileManager\.default', "Using FileManager.default (consider DI)"),
+        ]
+
+        self.ios_coordinator_patterns = [
+            (r'present\(.*ViewController.*animated:', "Direct view controller presentation (consider coordinator)"),
+            (r'pushViewController\(', "Direct navigation (consider coordinator pattern)"),
+        ]
+
     def analyze_file(self, file_path: str, content: str) -> List[AnalysisResult]:
         """Analyze a file for architecture issues."""
         results = []
@@ -41,6 +68,24 @@ class ArchitectureAnalyzer(BaseAnalyzer):
 
         # Check for dependency injection opportunities
         results.extend(self._check_dependency_injection(file_path, content))
+
+        # iOS/Swift-specific checks
+        ext = self.get_file_extension(file_path)
+        if ext in ('swift', 'm', 'mm'):
+            # Check for Massive View Controller
+            results.extend(self._check_massive_view_controller(file_path, content))
+
+            # Check for singleton overuse
+            results.extend(self._check_ios_singletons(file_path, content))
+
+            # Check for tight coupling
+            results.extend(self._check_ios_tight_coupling(file_path, content))
+
+            # Check for missing DI
+            results.extend(self._check_ios_dependency_injection(file_path, content))
+
+            # Check for coordinator pattern opportunities
+            results.extend(self._check_ios_coordinator(file_path, content))
 
         return results
 
@@ -289,6 +334,151 @@ class ArchitectureAnalyzer(BaseAnalyzer):
                     circular.append((file_a, file_b))
 
         return circular
+
+    def _check_massive_view_controller(self, file_path: str, content: str) -> List[AnalysisResult]:
+        """Check for Massive View Controller anti-pattern."""
+        results = []
+
+        # Find view controllers
+        vc_pattern = r'class\s+(\w+ViewController).*:'
+        matches = list(re.finditer(vc_pattern, content))
+
+        for match in matches:
+            vc_name = match.group(1)
+            vc_start = match.start()
+
+            # Find class end (next class or end of file)
+            next_class = None
+            for other_match in matches:
+                if other_match.start() > vc_start:
+                    next_class = other_match.start()
+                    break
+
+            if next_class:
+                vc_content = content[vc_start:next_class]
+            else:
+                vc_content = content[vc_start:]
+
+            # Count lines and methods
+            line_count = len(vc_content.split('\n'))
+            method_count = len(re.findall(r'func\s+\w+\s*\(', vc_content))
+
+            # Massive VC indicators
+            if line_count > 300 or method_count > 15:
+                line_num = content[:vc_start].count('\n') + 1
+
+                result = AnalysisResult(
+                    file=file_path,
+                    line=line_num,
+                    severity=Severity.HIGH,
+                    category=Category.ARCHITECTURE,
+                    title="Massive View Controller",
+                    description=f"View Controller '{vc_name}' has {line_count} lines and {method_count} methods",
+                    recommendation="Refactor using MVVM, extract business logic to ViewModel, use child VCs",
+                    code_snippet=f"ViewController: {line_count} lines, {method_count} methods",
+                )
+                results.append(result)
+
+        return results
+
+    def _check_ios_singletons(self, file_path: str, content: str) -> List[AnalysisResult]:
+        """Check for singleton pattern overuse."""
+        results = []
+
+        for pattern, description in self.ios_singleton_patterns:
+            matches = self.find_pattern(content, pattern)
+
+            # Only flag if there are many singletons
+            if len(matches) > 3:
+                result = AnalysisResult(
+                    file=file_path,
+                    line=1,
+                    severity=Severity.MEDIUM,
+                    category=Category.ARCHITECTURE,
+                    title="Singleton Overuse",
+                    description=f"File has {len(matches)} singleton instances",
+                    recommendation="Limit singleton usage, consider dependency injection and protocol-based design",
+                    code_snippet="",
+                )
+                results.append(result)
+                break  # Only report once per file
+
+        return results
+
+    def _check_ios_tight_coupling(self, file_path: str, content: str) -> List[AnalysisResult]:
+        """Check for tight coupling with frameworks."""
+        results = []
+
+        for pattern, description in self.ios_tight_coupling_patterns:
+            matches = self.find_pattern(content, pattern, re.MULTILINE)
+
+            for line_num, column, matched_text in matches:
+                code_snippet = self.get_lines_context(content, line_num, context_lines=1)
+
+                result = AnalysisResult(
+                    file=file_path,
+                    line=line_num,
+                    column=column,
+                    severity=Severity.MEDIUM,
+                    category=Category.ARCHITECTURE,
+                    title="Tight Coupling",
+                    description=description,
+                    recommendation="Separate view layer from business logic, use protocols for abstraction",
+                    code_snippet=code_snippet,
+                )
+                results.append(result)
+
+        return results
+
+    def _check_ios_dependency_injection(self, file_path: str, content: str) -> List[AnalysisResult]:
+        """Check for missing dependency injection."""
+        results = []
+
+        shared_usage_count = 0
+        for pattern, description in self.ios_dependency_injection_patterns:
+            matches = self.find_pattern(content, pattern)
+            shared_usage_count += len(matches)
+
+        # Only flag if there's excessive use of shared instances
+        if shared_usage_count > 5:
+            result = AnalysisResult(
+                file=file_path,
+                line=1,
+                severity=Severity.LOW,
+                category=Category.ARCHITECTURE,
+                title="Missing Dependency Injection",
+                description=f"File uses {shared_usage_count} shared/default instances",
+                recommendation="Inject dependencies via initializers or properties for better testability",
+                code_snippet="",
+            )
+            results.append(result)
+
+        return results
+
+    def _check_ios_coordinator(self, file_path: str, content: str) -> List[AnalysisResult]:
+        """Check for coordinator pattern opportunities."""
+        results = []
+
+        navigation_count = 0
+        for pattern, description in self.ios_coordinator_patterns:
+            matches = self.find_pattern(content, pattern)
+            navigation_count += len(matches)
+
+        # Only suggest coordinator pattern if there's significant navigation logic
+        if navigation_count > 3:
+            result = AnalysisResult(
+                file=file_path,
+                line=1,
+                severity=Severity.LOW,
+                category=Category.ARCHITECTURE,
+                title="Navigation Logic in View Controller",
+                description=f"File has {navigation_count} direct navigation calls",
+                recommendation="Consider using Coordinator pattern to decouple navigation logic",
+                code_snippet="",
+            )
+            results.append(result)
+
+        return results
 
     def _is_code_file(self, file_path: str) -> bool:
         """Check if file is a code file."""
