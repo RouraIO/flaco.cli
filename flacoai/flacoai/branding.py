@@ -43,6 +43,7 @@ STARTUP_TIPS = [
     "🚀 Use /jira plan to break down a ticket into implementation steps",
     "📊 Run /standup to summarize today's work for your team",
     "🎨 Use /generate login to create SwiftUI views from templates",
+    "📱 Use /xcode add-file to add files to your Xcode project",
     "📝 Type /help to see all available Flaco AI commands",
 ]
 

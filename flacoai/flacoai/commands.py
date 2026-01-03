@@ -1519,6 +1519,134 @@ class Commands:
             if self.verbose:
                 traceback.print_exc()
 
+    def cmd_xcode(self, args):
+        """Manage Xcode project files and targets
+
+        /xcode                          - Show project info
+        /xcode list-targets             - List all targets
+        /xcode list-files [target]      - List files in project or target
+        /xcode add-file <path> [target] - Add file to project
+        /xcode remove-file <path>       - Remove file from project
+
+        Examples:
+          /xcode
+          /xcode list-targets
+          /xcode list-files MyApp
+          /xcode add-file LoginView.swift
+          /xcode add-file Sources/NewFile.swift MyApp
+          /xcode remove-file OldFile.swift
+        """
+        self._track_command("xcode")
+
+        from flacoai.xcode import XcodeManager
+        from flacoai.xcode.xcode_manager import XcodeManagerException
+
+        # Parse arguments
+        args_parts = args.strip().split() if args.strip() else []
+
+        try:
+            # Load Xcode project
+            manager = XcodeManager(io=self.io)
+
+            # No args - show project info
+            if not args_parts:
+                info = manager.get_project_info()
+                self.io.tool_output(f"\n📱 Xcode Project: {info['name']}")
+                self.io.tool_output(f"📍 Path: {info['path']}")
+                self.io.tool_output(f"\n🎯 Targets ({info['target_count']}):")
+                for target in info['targets']:
+                    self.io.tool_output(f"   • {target['name']} ({target['type']})")
+                self.io.tool_output(f"\n💡 Use '/xcode list-targets' for more details")
+                self.io.tool_output(f"💡 Use '/xcode add-file <path>' to add files")
+                return
+
+            # Extract command
+            command = args_parts[0].lower()
+
+            # list-targets command
+            if command == "list-targets":
+                targets = manager.list_targets()
+                self.io.tool_output(f"\n🎯 Targets in {manager.project_path.stem}:\n")
+                for target in targets:
+                    self.io.tool_output(f"  📦 {target['name']}")
+                    self.io.tool_output(f"     Type: {target['type']}")
+                    self.io.tool_output(f"     Product: {target['product']}")
+                    self.io.tool_output("")
+
+            # list-files command
+            elif command == "list-files":
+                target_name = args_parts[1] if len(args_parts) > 1 else None
+                files = manager.list_files(target_name)
+
+                if target_name:
+                    self.io.tool_output(f"\n📄 Files in target '{target_name}':\n")
+                else:
+                    self.io.tool_output(f"\n📄 All files in project:\n")
+
+                for file_path in sorted(files):
+                    self.io.tool_output(f"   {file_path}")
+
+                self.io.tool_output(f"\nTotal: {len(files)} files")
+
+            # add-file command
+            elif command == "add-file":
+                if len(args_parts) < 2:
+                    self.io.tool_error("Usage: /xcode add-file <file_path> [target_name]")
+                    return
+
+                file_path = args_parts[1]
+                target_name = args_parts[2] if len(args_parts) > 2 else None
+
+                # Check if file exists
+                if not os.path.exists(file_path):
+                    self.io.tool_error(f"File not found: {file_path}")
+                    return
+
+                # Add file
+                success = manager.add_file(file_path, target_name=target_name)
+
+                if success:
+                    # Save project
+                    manager.save()
+                    self.io.tool_output(f"\n✅ Successfully added {file_path} to Xcode project")
+                    self.io.tool_output(f"💡 You can now open the project in Xcode")
+
+            # remove-file command
+            elif command == "remove-file":
+                if len(args_parts) < 2:
+                    self.io.tool_error("Usage: /xcode remove-file <file_path>")
+                    return
+
+                file_path = args_parts[1]
+
+                # Remove file
+                success = manager.remove_file(file_path)
+
+                if success:
+                    # Save project
+                    manager.save()
+                    self.io.tool_output(f"\n✅ Successfully removed {file_path} from Xcode project")
+                else:
+                    self.io.tool_error(f"Failed to remove file: {file_path}")
+
+            else:
+                self.io.tool_error(f"Unknown command: {command}")
+                self.io.tool_output("\nAvailable commands:")
+                self.io.tool_output("  list-targets")
+                self.io.tool_output("  list-files [target]")
+                self.io.tool_output("  add-file <path> [target]")
+                self.io.tool_output("  remove-file <path>")
+
+        except XcodeManagerException as e:
+            self.io.tool_error(f"Xcode error: {e}")
+            if not XcodeManager or not hasattr(XcodeManager, '__init__'):
+                self.io.tool_output("\n💡 Install mod-pbxproj: pip install mod-pbxproj")
+        except Exception as e:
+            self.io.tool_error(f"Error: {e}")
+            import traceback
+            if self.verbose:
+                traceback.print_exc()
+
     def cmd_review(self, args):
         """Perform comprehensive code review
 
