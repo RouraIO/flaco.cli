@@ -33,6 +33,46 @@ class GitHubExporter:
         except FileNotFoundError:
             return False
 
+    def ensure_labels_exist(self):
+        """Create common Flaco AI labels if they don't exist.
+
+        Creates labels for:
+        - Severity levels (severity:critical, severity:high, etc.)
+        - Categories (security, performance, quality, etc.)
+        """
+        labels_to_create = [
+            # Severity labels
+            ("severity:critical", "d73a4a", "Critical severity issues"),
+            ("severity:high", "e99695", "High severity issues"),
+            ("severity:medium", "fbca04", "Medium severity issues"),
+            ("severity:low", "0e8a16", "Low severity issues"),
+            # Category labels
+            ("security", "b60205", "Security vulnerabilities"),
+            ("performance", "d93f0b", "Performance issues"),
+            ("code-quality", "fbca04", "Code quality improvements"),
+            ("architecture", "0052cc", "Architecture and design"),
+            ("ios", "1d76db", "iOS-specific issues"),
+            ("swiftui", "5319e7", "SwiftUI-specific issues"),
+            ("documentation", "d4c5f9", "Documentation improvements"),
+            ("code-review", "ededed", "Automated code review findings"),
+        ]
+
+        for label_name, color, description in labels_to_create:
+            try:
+                # Try to create label (will fail silently if exists)
+                subprocess.run(
+                    [
+                        "gh", "label", "create", label_name,
+                        "--color", color,
+                        "--description", description,
+                        "--force"  # Update if exists
+                    ],
+                    capture_output=True,
+                    check=False
+                )
+            except Exception:
+                pass  # Silently continue if label creation fails
+
     def export_findings(self, results: List, severity_threshold: str = "high") -> List[str]:
         """Export findings as GitHub issues.
 
@@ -47,6 +87,9 @@ class GitHubExporter:
             if self.io:
                 self.io.tool_error("GitHub CLI (gh) not found. Install from: https://cli.github.com/")
             return []
+
+        # Ensure labels exist before creating issues
+        self.ensure_labels_exist()
 
         from flacoai.analyzers import Severity
 

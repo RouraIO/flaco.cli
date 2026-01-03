@@ -15,5 +15,4 @@ export PYTHONPATH="$SCRIPT_DIR/flacoai:$PYTHONPATH"
 export SETUPTOOLS_SCM_PRETEND_VERSION=1.5.0
 
 # Run flacoai
-cd "$SCRIPT_DIR/flacoai"
 python -m flacoai "$@"

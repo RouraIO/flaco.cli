@@ -56,7 +56,6 @@ export PYTHONPATH="\$PROJECT_ROOT/flacoai:\$PYTHONPATH"
 export SETUPTOOLS_SCM_PRETEND_VERSION=0.86.1
 
 # Run Flaco AI
-cd "\$PROJECT_ROOT/flacoai"
 python3 -m flacoai "\$@"
 FLACO_SCRIPT_EOF
 

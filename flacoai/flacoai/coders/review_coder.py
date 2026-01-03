@@ -164,6 +164,88 @@ class ReviewCoder(AskCoder):
                 combined_report.results.extend(report.results)
                 break  # Only use first found rules file
 
+        # Premium analyzers (v3.0.0 - PRO/ENTERPRISE tier only)
+        from flacoai.licensing.license_manager import LicenseManager
+
+        license_manager = LicenseManager(io=self.io)
+        license_tier = license_manager.get_tier()
+
+        # Check if user has access to premium features
+        if license_tier.value in ["pro", "enterprise"]:
+            if self.io:
+                self.io.tool_output("")
+                self.io.tool_output(f"🎉 Running premium analyzers ({license_tier.value.upper()} tier)...")
+
+            try:
+                from flacoai.premium import (
+                    CrashPredictionAnalyzer,
+                    PerformanceProfilerAnalyzer,
+                    MemoryLeakAnalyzer,
+                    SecurityScoringAnalyzer,
+                    TechnicalDebtAnalyzer,
+                )
+
+                # Crash Prediction Analyzer
+                if self.io:
+                    self.io.tool_output("  • Crash Prediction (likelihood scoring)...")
+                analyzer = CrashPredictionAnalyzer(io=self.io, verbose=self.verbose)
+                report = analyzer.analyze_files(files_dict)
+                combined_report.results.extend(report.results)
+
+                # Performance Profiler Analyzer
+                if self.io:
+                    self.io.tool_output("  • Performance Profiler (bottleneck detection)...")
+                analyzer = PerformanceProfilerAnalyzer(io=self.io, verbose=self.verbose)
+                report = analyzer.analyze_files(files_dict)
+                combined_report.results.extend(report.results)
+
+                # Memory Leak Analyzer
+                if self.io:
+                    self.io.tool_output("  • Memory Leak Detection (retain cycles)...")
+                analyzer = MemoryLeakAnalyzer(io=self.io, verbose=self.verbose)
+                report = analyzer.analyze_files(files_dict)
+                combined_report.results.extend(report.results)
+
+                # Security Scoring Analyzer
+                if self.io:
+                    self.io.tool_output("  • Security Scoring (0-100 with OWASP)...")
+                analyzer = SecurityScoringAnalyzer(io=self.io, verbose=self.verbose)
+                report = analyzer.analyze_files(files_dict)
+                combined_report.results.extend(report.results)
+
+                # Calculate security score for summary
+                security_score_data = analyzer.calculate_security_score(combined_report.results)
+                combined_report.metadata["security_score"] = security_score_data
+
+                # Technical Debt Analyzer
+                if self.io:
+                    self.io.tool_output("  • Technical Debt Analysis (maintainability)...")
+                analyzer = TechnicalDebtAnalyzer(io=self.io, verbose=self.verbose)
+                report = analyzer.analyze_files(files_dict)
+                combined_report.results.extend(report.results)
+
+                if self.io:
+                    self.io.tool_output(f"✓ Premium analysis complete ({license_tier.value.upper()} tier)")
+
+            except ImportError as e:
+                if self.io:
+                    self.io.tool_error(f"Premium analyzers not available: {e}")
+                    self.io.tool_output("Premium features require PRO or ENTERPRISE license.")
+                    self.io.tool_output("Run /license upgrade for more information.")
+
+        elif license_tier.value == "free":
+            # Show upgrade prompt for FREE tier users
+            if self.io and enable_quality:  # Only show once
+                self.io.tool_output("")
+                self.io.tool_output("💡 Want more insights? Upgrade to PRO for:")
+                self.io.tool_output("   • Crash Prediction with likelihood scoring")
+                self.io.tool_output("   • Performance Profiler for bottlenecks")
+                self.io.tool_output("   • Memory Leak detection")
+                self.io.tool_output("   • Security Scoring (0-100)")
+                self.io.tool_output("   • Technical Debt metrics")
+                self.io.tool_output("")
+                self.io.tool_output("   Run: /license upgrade")
+
         self.review_results = combined_report.results
         return combined_report
 

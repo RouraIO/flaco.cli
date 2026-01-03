@@ -1,0 +1,131 @@
+Flaco AI - Professional iOS Code Review Platform
+Copyright (c) 2026 Roura.IO
+
+================================================================================
+
+This product includes software developed by Paul Gauthier (Aider).
+Original software licensed under the Apache License, Version 2.0.
+See LICENSE.aider for full license text.
+
+Aider repository: https://github.com/paul-gauthier/aider
+Copyright (c) 2023 Paul Gauthier
+
+================================================================================
+
+MODIFICATIONS AND ADDITIONS TO AIDER
+
+The following significant changes and additions have been made to create
+Flaco AI from the original Aider codebase:
+
+v1.1.0-v1.9.0 (Open Source Foundation):
+--------------------------------------------
+1. iOS-Specific Code Analyzers (405+ automated checks):
+   - SecurityAnalyzer (50+ checks for iOS security)
+   - PerformanceAnalyzer (45+ checks for iOS performance)
+   - QualityAnalyzer (60+ checks for Swift code quality)
+   - ArchitectureAnalyzer (40+ checks for iOS architecture)
+   - SwiftUIAnalyzer (40+ checks for SwiftUI best practices)
+   - IOSVersionAnalyzer (55+ checks for deprecated APIs)
+   - IOSSymbolsAnalyzer (30+ checks for SF Symbols)
+   - IOSHIGAnalyzer (35+ checks for HIG compliance)
+   - IOSPlistAnalyzer (20+ checks for Info.plist security)
+   - SPMAnalyzer (25+ checks for Package.swift quality)
+   - DocumentationAnalyzer (30+ checks for doc coverage)
+
+2. Enhanced Code Review System (v2.0.0):
+   - Structured review output (Executive Summary, severity sections)
+   - Interactive fix application system
+   - CI/CD integration (JSON output, exit codes)
+   - Baseline tracking for progress monitoring
+   - GitHub issues export functionality
+   - Custom team rules engine (.flaco/rules.yaml)
+   - Smart context loading (generated code detection)
+
+3. New Modules Created:
+   - flacoai/analyzers/* (11 analyzer modules, ~3,500 lines)
+   - flacoai/baseline_manager.py (175 lines)
+   - flacoai/fix_applicator.py (262 lines)
+   - flacoai/integrations/github_exporter.py (174 lines)
+   - flacoai/smart_context.py (305 lines)
+   - flacoai/doc_generators/* (2 modules, 680 lines)
+
+4. Enhanced Existing Modules:
+   - flacoai/coders/review_coder.py (integrated all analyzers)
+   - flacoai/coders/review_prompts.py (structured output format)
+   - flacoai/commands.py (new /review flags and modes)
+
+v3.0.0 (Premium Features - Proprietary):
+--------------------------------------------
+5. Premium Analyzers (200+ additional checks):
+   - CrashPredictionAnalyzer (proprietary)
+   - PerformanceProfilerAnalyzer (proprietary)
+   - MemoryLeakAnalyzer (proprietary)
+   - SecurityScoringAnalyzer (proprietary)
+   - TechnicalDebtAnalyzer (proprietary)
+
+6. Commercial Features:
+   - License validation system
+   - Feature tier management (Free/Pro/Enterprise)
+   - LaunchDarkly integration for feature flags
+   - GitHub App for automatic PR reviews
+   - Team metrics dashboard
+   - Advanced auto-fix capabilities
+
+================================================================================
+
+THIRD-PARTY DEPENDENCIES
+
+Flaco AI uses the following third-party libraries and services:
+
+From Aider (Apache 2.0):
+- Core AI integration framework
+- Git repository management
+- File editing and diff generation
+- Prompt engineering system
+- IO and terminal handling
+
+Additional Dependencies:
+- Claude AI (Anthropic) - AI model integration
+- Ollama - Local LLM support
+- tree-sitter - Code parsing
+- PyYAML - Configuration parsing
+- LaunchDarkly (optional) - Feature flags
+
+See requirements.txt for complete list of Python dependencies.
+
+================================================================================
+
+TRADEMARK NOTICE
+
+"Flaco AI" is a trademark of Roura.IO.
+"Aider" is a trademark of Paul Gauthier.
+
+This product is not endorsed by or affiliated with Paul Gauthier or the
+Aider project, except as a derivative work under the Apache 2.0 license.
+
+================================================================================
+
+PATENT GRANT
+
+In accordance with Section 3 of the Apache License 2.0, Flaco AI grants
+users a patent license for the portions of the codebase derived from Aider.
+
+For proprietary features added in v3.0.0 and later, Roura.IO reserves all
+patent rights. No patent license is granted for proprietary features beyond
+what is required by applicable law.
+
+================================================================================
+
+WARRANTY DISCLAIMER
+
+Portions of this software are provided "AS IS" under the Apache License 2.0,
+without warranty of any kind. See LICENSE.aider for full disclaimer.
+
+Proprietary portions of Flaco AI are provided under separate commercial
+license terms. See LICENSE for details.
+
+================================================================================
+
+For questions about licensing or attribution:
+- Email: legal@roura.io
+- Website: https://github.com/RouraIO/flaco.cli

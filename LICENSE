@@ -1,0 +1,168 @@
+FLACO AI DUAL LICENSE
+
+================================================================================
+PART 1: OPEN SOURCE COMPONENTS (Apache License 2.0)
+================================================================================
+
+The following components of Flaco AI are licensed under the Apache License,
+Version 2.0 (the "Apache License"). You may obtain a copy of the Apache
+License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Open Source Components (v1.0.0 - v2.0.0):
+- All base analyzers (SecurityAnalyzer, PerformanceAnalyzer, QualityAnalyzer,
+  ArchitectureAnalyzer, SwiftUIAnalyzer, IOSVersionAnalyzer, IOSSymbolsAnalyzer,
+  IOSHIGAnalyzer, IOSPlistAnalyzer, SPMAnalyzer, DocumentationAnalyzer)
+- Basic /review command functionality
+- CI/CD integration (--ci, --json flags)
+- Baseline tracking (--baseline, --compare)
+- GitHub issues export (--export-github)
+- Custom rules engine
+- Smart context loading
+- Interactive fix application (basic patterns)
+- All code in flacoai/ directory except flacoai/premium/
+
+These components are derived from Aider by Paul Gauthier.
+See LICENSE.aider for Aider's Apache License 2.0.
+See NOTICE for detailed attributions and changes.
+
+Copyright (c) 2026 Roura.IO
+Copyright (c) 2023 Paul Gauthier (portions)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+================================================================================
+PART 2: PROPRIETARY COMPONENTS (Commercial License)
+================================================================================
+
+The following components are proprietary and require a commercial license:
+
+Premium Components (v3.0.0+):
+- Premium analyzers (CrashPredictionAnalyzer, PerformanceProfilerAnalyzer,
+  MemoryLeakAnalyzer, SecurityScoringAnalyzer, TechnicalDebtAnalyzer)
+- Advanced auto-fix capabilities (multi-line refactoring, batch fixes)
+- GitHub App integration (automatic PR comments)
+- Team metrics dashboard
+- Cloud-hosted features
+- Enterprise features (SSO, on-premises deployment, SLA)
+- All code in flacoai/premium/ directory
+
+Copyright (c) 2026 Roura.IO
+All Rights Reserved.
+
+COMMERCIAL LICENSE TERMS
+
+1. GRANT OF LICENSE
+   Subject to payment of applicable license fees and compliance with these
+   terms, Roura.IO grants you a non-exclusive, non-transferable license to
+   use the proprietary components as follows:
+
+   FREE TIER: No license required for open source components.
+
+   PRO TIER ($49-99 per developer per month):
+   - Use of premium analyzers (600+ total checks)
+   - Advanced auto-fix capabilities
+   - GitHub App integration
+   - Team metrics dashboard (local)
+
+   ENTERPRISE TIER (Custom pricing):
+   - Everything in Pro tier
+   - Cloud-hosted dashboard
+   - SSO/SAML integration
+   - On-premises deployment
+   - Custom analyzer development
+   - Priority support with SLA
+
+2. RESTRICTIONS
+   You may NOT:
+   - Redistribute proprietary components
+   - Reverse engineer proprietary analyzers
+   - Remove or modify license validation
+   - Use beyond licensed number of developers
+   - Create derivative works of proprietary components
+   - Use for competitive products
+
+3. LICENSE VALIDATION
+   Proprietary features require a valid license key. Usage is monitored and
+   may be audited. Unauthorized use will result in feature disablement.
+
+4. TERMINATION
+   This license terminates automatically if you:
+   - Fail to pay license fees
+   - Exceed licensed developer count
+   - Violate any license terms
+   - Go bankrupt or cease operations
+
+   Upon termination, proprietary features will be disabled and you must
+   cease using all proprietary components.
+
+5. WARRANTY DISCLAIMER
+   PROPRIETARY COMPONENTS ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND,
+   EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
+
+6. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL ROURA.IO BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+   OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+7. GOVERNING LAW
+   This license shall be governed by the laws of [YOUR JURISDICTION], without
+   regard to conflict of law provisions.
+
+8. ENTIRE AGREEMENT
+   This license constitutes the entire agreement between you and Roura.IO
+   regarding proprietary components and supersedes all prior agreements.
+
+================================================================================
+HOW TO DETERMINE WHICH LICENSE APPLIES
+================================================================================
+
+If you are unsure which license applies to a specific file or feature:
+
+1. Check the file header - proprietary files will have a copyright notice
+2. Check the directory - flacoai/premium/ is proprietary
+3. Check your license tier - free users cannot access proprietary features
+4. Contact legal@roura.io for clarification
+
+Free Tier Users:
+- You have full access to all open source components under Apache 2.0
+- No license key required
+- Proprietary features are not available
+
+Paid Tier Users:
+- You have access to open source components under Apache 2.0
+- You have limited access to proprietary components per your license tier
+- License key required for proprietary features
+
+================================================================================
+CONTACT INFORMATION
+================================================================================
+
+For licensing questions:
+Email: legal@roura.io
+
+For commercial licensing:
+Email: sales@roura.io
+Website: https://flaco.ai/pricing
+
+For technical support:
+Email: support@roura.io
+Website: https://github.com/RouraIO/flaco.cli
+
+================================================================================
+
+Version: 3.0.0
+Last Updated: 2026-01-03

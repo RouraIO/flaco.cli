@@ -324,16 +324,6 @@ class Coder:
         lines.append("")
         lines.append(f"💡 {get_random_tip()}")
 
-        # Working directory info section (moved inside header)
-        from flacoai.branding import format_directory_note
-        git_root = None
-        if self.repo and hasattr(self.repo, 'root'):
-            git_root = str(self.repo.root)
-
-        lines.append("")
-        directory_note = format_directory_note(os.getcwd(), git_root)
-        lines.extend(directory_note.split("\n"))
-
         return lines
 
     ok_to_warm_cache = False
@@ -2540,7 +2530,9 @@ class Coder:
             self.io.tool_output(f"Running {command}")
             # Add the command to input history
             self.io.add_to_input_history(f"/run {command.strip()}")
-            exit_status, output = run_cmd(command, error_print=self.io.tool_error, cwd=self.root)
+            # Run in the directory the user launched flacoai from (their current working directory),
+            # not necessarily the git repo root.
+            exit_status, output = run_cmd(command, error_print=self.io.tool_error, cwd=os.getcwd())
             if output:
                 accumulated_output += f"Output from {command}\n{output}\n"
 

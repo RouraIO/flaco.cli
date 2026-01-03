@@ -1143,14 +1143,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             allow_never=False,
         )
 
-    if git_root and Path.cwd().resolve() != Path(git_root).resolve():
-        io.tool_warning(
-            "Note: in-chat filenames are always relative to the git working dir, not the current"
-            " working dir."
-        )
-
-        io.tool_output(f"Cur working dir: {Path.cwd()}")
-        io.tool_output(f"Git working dir: {git_root}")
+    # Working-directory note is already included in the session header.
 
     if args.stream and args.cache_prompts:
         io.tool_warning("Cost estimates may be inaccurate when using streaming and caching.")

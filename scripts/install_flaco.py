@@ -103,7 +103,7 @@ os.environ["PYTHONPATH"] = str(PROJECT_ROOT / "flacoai") + os.pathsep + os.envir
 os.environ["SETUPTOOLS_SCM_PRETEND_VERSION"] = "1.5.0"
 
 # Run Flaco AI
-os.chdir(PROJECT_ROOT / "flacoai")
+ # Preserve the user's current working directory; do not chdir here.
 
 if __name__ == "__main__":
     from flacoai.main import main

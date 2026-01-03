@@ -1011,7 +1011,7 @@ class Commands:
     def cmd_run(self, args, add_on_nonzero_exit=False):
         "Run a shell command and optionally add the output to the chat (alias: !)"
         exit_status, combined_output = run_cmd(
-            args, verbose=self.verbose, error_print=self.io.tool_error, cwd=self.coder.root
+            args, verbose=self.verbose, error_print=self.io.tool_error, cwd=os.getcwd()
         )
 
         if combined_output is None:
@@ -1902,7 +1902,8 @@ Make the code production-ready and compilable."""
                     base_name = os.path.splitext(file_arg)[0]
 
                     # Search in current directory and subdirectories
-                    root_path = self.coder.root if self.coder.root else os.getcwd()
+                    # Use current working directory (where user ran command) not git root
+                    root_path = os.getcwd()
                     for root, dirs, files in os.walk(root_path):
                         # Skip hidden directories and common ignore patterns
                         dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '__pycache__', 'venv', 'env']]
@@ -1932,7 +1933,8 @@ Make the code production-ready and compilable."""
 
             from flacoai.smart_context import SmartContextLoader
 
-            root_path = self.coder.root if self.coder.root else os.getcwd()
+            # Use current working directory (where user ran command) not git root
+            root_path = os.getcwd()
             context_loader = SmartContextLoader(root_path, io=self.io)
 
             # Use smart context loader
@@ -2979,7 +2981,7 @@ Work in REFACTOR mode:
             since_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
             result = subprocess.run(
                 ['git', 'log', f'--since={since_date}', '--pretty=format:%h|%an|%ar|%s', '--no-merges'],
-                cwd=self.coder.root,
+                cwd=os.getcwd(),
                 capture_output=True,
                 text=True
             )
@@ -3052,7 +3054,7 @@ Keep it brief and focus on the impact, not the technical details."""
                     import subprocess
                     result = subprocess.run(
                         ['git', 'status', '--short'],
-                        cwd=self.coder.root,
+                        cwd=os.getcwd(),
                         capture_output=True,
                         text=True
                     )
@@ -3457,6 +3459,227 @@ Just show me the edits I need to make.
             )
         except Exception as e:
             self.io.tool_error(f"An unexpected error occurred while copying to clipboard: {str(e)}")
+
+    def cmd_license(self, args):
+        """Manage Flaco AI license and tier
+
+        /license                       - Show current license status
+        /license info                  - Show detailed license information
+        /license activate <email> <key> - Activate PRO or ENTERPRISE license
+        /license deactivate            - Deactivate license (revert to FREE)
+        /license upgrade               - Get upgrade information
+        """
+        self._track_command("license")
+
+        from flacoai.licensing.license_manager import LicenseManager
+
+        license_manager = LicenseManager(io=self.io)
+
+        # Parse subcommand
+        parts = args.strip().split(maxsplit=2)
+        subcommand = parts[0] if parts else "info"
+
+        if subcommand == "activate":
+            if len(parts) < 3:
+                self.io.tool_error("Usage: /license activate <email> <license-key>")
+                self.io.tool_output("")
+                self.io.tool_output("Example:")
+                self.io.tool_output("  /license activate you@company.com FLACO-XXXXXXXX-XXXXXXXX-XXXXXXXX")
+                return
+
+            email = parts[1]
+            license_key = parts[2]
+
+            # Activate license
+            try:
+                success = license_manager.activate_license(email, license_key)
+
+                if success:
+                    license_info = license_manager.get_license_info()
+                    tier = license_info.get("tier", "free").upper()
+
+                    self.io.tool_output("")
+                    self.io.tool_output(f"✓ License activated successfully!")
+                    self.io.tool_output(f"  Tier: {tier}")
+                    self.io.tool_output(f"  Email: {email}")
+                    self.io.tool_output(f"  Expires: {license_info.get('expires', 'N/A')}")
+                    self.io.tool_output("")
+                    self.io.tool_output("🎉 You now have access to premium features:")
+
+                    if tier == "PRO" or tier == "ENTERPRISE":
+                        self.io.tool_output("  ✓ 5 Premium Analyzers (605+ checks)")
+                        self.io.tool_output("    - Crash Prediction with likelihood scoring")
+                        self.io.tool_output("    - Performance Profiler for bottlenecks")
+                        self.io.tool_output("    - Memory Leak detection")
+                        self.io.tool_output("    - Security Scoring (0-100)")
+                        self.io.tool_output("    - Technical Debt metrics")
+                        self.io.tool_output("  ✓ Advanced auto-fix capabilities")
+                        self.io.tool_output("  ✓ Team collaboration features")
+
+                    if tier == "ENTERPRISE":
+                        self.io.tool_output("  ✓ Cloud dashboard access")
+                        self.io.tool_output("  ✓ SSO/SAML integration")
+                        self.io.tool_output("  ✓ Priority support (4-hour SLA)")
+
+                    self.io.tool_output("")
+                    self.io.tool_output("Run /review to start using premium analyzers!")
+                else:
+                    self.io.tool_error("Failed to activate license. Please check your email and license key.")
+                    self.io.tool_output("")
+                    self.io.tool_output("If you need help, contact support@roura.io")
+
+            except Exception as e:
+                self.io.tool_error(f"License activation error: {e}")
+
+        elif subcommand == "deactivate":
+            try:
+                license_manager.deactivate_license()
+                self.io.tool_output("")
+                self.io.tool_output("✓ License deactivated successfully")
+                self.io.tool_output("  Tier: FREE")
+                self.io.tool_output("")
+                self.io.tool_output("You still have access to:")
+                self.io.tool_output("  ✓ 11 Built-in Analyzers (405+ checks)")
+                self.io.tool_output("  ✓ All v2.0.0 features (CI/CD, baseline tracking, GitHub export)")
+                self.io.tool_output("  ✓ Local-first privacy with Ollama")
+                self.io.tool_output("")
+                self.io.tool_output("To upgrade again: /license activate <email> <key>")
+
+            except Exception as e:
+                self.io.tool_error(f"Deactivation error: {e}")
+
+        elif subcommand == "info" or subcommand == "status" or not subcommand:
+            # Show current license status
+            license_info = license_manager.get_license_info()
+            tier = license_info.get("tier", "free").upper()
+            email = license_info.get("email")
+            expires = license_info.get("expires")
+            is_active = license_info.get("is_active", False)
+
+            self.io.tool_output("")
+            self.io.tool_output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            self.io.tool_output(f"  Flaco AI License Information")
+            self.io.tool_output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+            if tier == "FREE":
+                self.io.tool_output("  Tier: FREE")
+                self.io.tool_output("  Status: Active")
+                self.io.tool_output("")
+                self.io.tool_output("  Features Included:")
+                self.io.tool_output("  ✓ 11 Built-in Analyzers (405+ checks)")
+                self.io.tool_output("  ✓ Security, Performance, Quality analysis")
+                self.io.tool_output("  ✓ CI/CD integration (--ci, --json)")
+                self.io.tool_output("  ✓ Baseline tracking (--baseline, --compare)")
+                self.io.tool_output("  ✓ GitHub issues export (--export-github)")
+                self.io.tool_output("  ✓ Interactive fixes (--fix)")
+                self.io.tool_output("  ✓ Unlimited local usage with Ollama")
+                self.io.tool_output("")
+                self.io.tool_output("  Want More? Upgrade to PRO:")
+                self.io.tool_output("  🚀 605+ total checks (200 premium)")
+                self.io.tool_output("  🚀 Crash Prediction with 50-95% likelihood scoring")
+                self.io.tool_output("  🚀 Performance Profiler (UI lag detection)")
+                self.io.tool_output("  🚀 Memory Leak Detector (retain cycle analysis)")
+                self.io.tool_output("  🚀 Security Scoring (0-100, OWASP Mobile Top 10)")
+                self.io.tool_output("  🚀 Technical Debt Analysis (Maintainability Index)")
+                self.io.tool_output("")
+                self.io.tool_output("  Pricing: $49/month or $399/year (save $189)")
+                self.io.tool_output("  Visit: https://github.com/RouraIO/flaco.cli/blob/main/PRICING.md")
+                self.io.tool_output("  Or run: /license upgrade")
+
+            else:
+                # PRO or ENTERPRISE
+                status = "Active" if is_active else "Expired"
+                status_icon = "✓" if is_active else "✗"
+
+                self.io.tool_output(f"  Tier: {tier}")
+                self.io.tool_output(f"  Email: {email}")
+                self.io.tool_output(f"  Status: {status_icon} {status}")
+
+                if expires:
+                    self.io.tool_output(f"  Expires: {expires}")
+
+                    # Calculate days remaining
+                    from datetime import datetime
+                    try:
+                        expiry_date = datetime.fromisoformat(expires)
+                        days_left = (expiry_date - datetime.now()).days
+
+                        if days_left > 0:
+                            self.io.tool_output(f"  Days Remaining: {days_left}")
+                        elif days_left > -30:
+                            self.io.tool_error(f"  ⚠️  License expired {abs(days_left)} days ago")
+                        else:
+                            self.io.tool_error("  ✗ License has expired")
+                    except:
+                        pass
+
+                self.io.tool_output("")
+                self.io.tool_output("  Premium Features:")
+                self.io.tool_output("  ✓ 16 Total Analyzers (605+ checks)")
+                self.io.tool_output("  ✓ Crash Prediction Analyzer")
+                self.io.tool_output("  ✓ Performance Profiler Analyzer")
+                self.io.tool_output("  ✓ Memory Leak Analyzer")
+                self.io.tool_output("  ✓ Security Scoring Analyzer (0-100)")
+                self.io.tool_output("  ✓ Technical Debt Analyzer")
+                self.io.tool_output("  ✓ Advanced auto-fix capabilities")
+                self.io.tool_output("  ✓ Team collaboration features")
+
+                if tier == "ENTERPRISE":
+                    self.io.tool_output("  ✓ Cloud dashboard")
+                    self.io.tool_output("  ✓ SSO/SAML integration")
+                    self.io.tool_output("  ✓ Priority support (4-hour SLA)")
+
+            self.io.tool_output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            self.io.tool_output("")
+
+        elif subcommand == "upgrade":
+            # Show upgrade information
+            self.io.tool_output("")
+            self.io.tool_output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            self.io.tool_output("  Upgrade to Flaco AI PRO")
+            self.io.tool_output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            self.io.tool_output("")
+            self.io.tool_output("  PRO Tier - $49/developer/month")
+            self.io.tool_output("")
+            self.io.tool_output("  What you get:")
+            self.io.tool_output("  ✓ 5 Premium Analyzers:")
+            self.io.tool_output("    • Crash Prediction (likelihood scoring)")
+            self.io.tool_output("    • Performance Profiler (bottleneck detection)")
+            self.io.tool_output("    • Memory Leak Detection (retain cycles)")
+            self.io.tool_output("    • Security Scoring (0-100 with OWASP compliance)")
+            self.io.tool_output("    • Technical Debt Metrics (maintainability index)")
+            self.io.tool_output("")
+            self.io.tool_output("  ✓ Advanced Features:")
+            self.io.tool_output("    • Batch fix mode (auto-fix safe issues)")
+            self.io.tool_output("    • GitHub App integration (automatic PR reviews)")
+            self.io.tool_output("    • Local team dashboard")
+            self.io.tool_output("    • Priority email support (24-hour response)")
+            self.io.tool_output("")
+            self.io.tool_output("  💰 ROI: Catches 1 crash/month = saves 2-4 hours")
+            self.io.tool_output("      At $100/hour dev cost = $200-400 saved")
+            self.io.tool_output("      Pays for itself 4-8x!")
+            self.io.tool_output("")
+            self.io.tool_output("  Purchase License:")
+            self.io.tool_output("  🌐 https://flaco.ai/pricing")
+            self.io.tool_output("")
+            self.io.tool_output("  Need Enterprise? (SSO, Cloud Dashboard, Custom SLA)")
+            self.io.tool_output("  📧 sales@roura.io")
+            self.io.tool_output("")
+            self.io.tool_output("  14-Day Free Trial Available!")
+            self.io.tool_output("  📧 trial@roura.io")
+            self.io.tool_output("")
+            self.io.tool_output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            self.io.tool_output("")
+
+        else:
+            self.io.tool_error(f"Unknown subcommand: {subcommand}")
+            self.io.tool_output("")
+            self.io.tool_output("Available commands:")
+            self.io.tool_output("  /license                       - Show license status")
+            self.io.tool_output("  /license info                  - Show detailed information")
+            self.io.tool_output("  /license activate <email> <key> - Activate license")
+            self.io.tool_output("  /license deactivate            - Deactivate license")
+            self.io.tool_output("  /license upgrade               - Get upgrade information")
 
 
 def expand_subdir(file_path):
