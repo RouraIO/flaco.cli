@@ -146,11 +146,11 @@ class MarkdownStream:
         """
         from rich.theme import Theme
 
-        # Create custom theme to remove white background from inline code
-        # Override markdown.code and markdown.code_inline styles
+        # Create custom theme to remove background from inline code
+        # The default is "bold cyan on black" which creates a dark background box
+        # We want just bold text with no background at all
         custom_theme = Theme({
-            "markdown.code": "bold",  # Just bold, no background
-            "markdown.code_inline": "bold",  # Just bold, no background
+            "markdown.code": "bold",  # Remove "on black" background
         })
 
         # Render the markdown to a string buffer

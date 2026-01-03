@@ -1015,8 +1015,8 @@ class InputOutput:
         mdargs = dict(
             style=self.assistant_output_color,
             code_theme=self.code_theme,
-            inline_code_lexer="text",
-            inline_code_theme=None,  # Disable white background on inline code
+            inline_code_lexer=None,  # Disable syntax highlighting for inline code
+            inline_code_theme="",  # Empty string to disable theme (no background)
         )
         mdStream = MarkdownStream(mdargs=mdargs)
         return mdStream
