@@ -17,6 +17,7 @@ from .ios_plist_analyzer import IOSPlistAnalyzer
 from .swiftui_analyzer import SwiftUIAnalyzer
 from .ios_version_analyzer import IOSVersionAnalyzer
 from .spm_analyzer import SPMAnalyzer
+from .documentation_analyzer import DocumentationAnalyzer
 
 __all__ = [
     "BaseAnalyzer",
@@ -34,4 +35,5 @@ __all__ = [
     "SwiftUIAnalyzer",
     "IOSVersionAnalyzer",
     "SPMAnalyzer",
+    "DocumentationAnalyzer",
 ]

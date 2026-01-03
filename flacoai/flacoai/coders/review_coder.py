@@ -42,6 +42,7 @@ class ReviewCoder(AskCoder):
             SwiftUIAnalyzer,
             IOSVersionAnalyzer,
             SPMAnalyzer,
+            DocumentationAnalyzer,
             AnalysisReport,
         )
 
@@ -128,6 +129,11 @@ class ReviewCoder(AskCoder):
 
             # Swift Package Manager analyzer
             analyzer = SPMAnalyzer(io=self.io, verbose=self.verbose)
+            report = analyzer.analyze_files(files_dict)
+            combined_report.results.extend(report.results)
+
+            # Documentation coverage analyzer
+            analyzer = DocumentationAnalyzer(io=self.io, verbose=self.verbose)
             report = analyzer.analyze_files(files_dict)
             combined_report.results.extend(report.results)
 
