@@ -17,7 +17,7 @@ class ReviewCoder(AskCoder):
 
     def run_static_analysis(self, files_to_analyze=None, enable_security=True,
                            enable_performance=True, enable_quality=True,
-                           enable_architecture=True):
+                           enable_architecture=True, enable_ios=True):
         """Run static analysis with the analyzer framework.
 
         Args:
@@ -26,6 +26,7 @@ class ReviewCoder(AskCoder):
             enable_performance: Run performance analyzer
             enable_quality: Run quality analyzer
             enable_architecture: Run architecture analyzer
+            enable_ios: Run iOS-specific analyzers (SF Symbols, HIG, Info.plist)
 
         Returns:
             Combined AnalysisReport
@@ -35,6 +36,9 @@ class ReviewCoder(AskCoder):
             PerformanceAnalyzer,
             QualityAnalyzer,
             ArchitectureAnalyzer,
+            IOSSymbolsAnalyzer,
+            IOSHIGAnalyzer,
+            IOSPlistAnalyzer,
             AnalysisReport,
         )
 
@@ -86,6 +90,26 @@ class ReviewCoder(AskCoder):
             if self.io:
                 self.io.tool_output("Running architecture analysis...")
             analyzer = ArchitectureAnalyzer(io=self.io, verbose=self.verbose)
+            report = analyzer.analyze_files(files_dict)
+            combined_report.results.extend(report.results)
+
+        # iOS-specific analyzers
+        if enable_ios:
+            if self.io:
+                self.io.tool_output("Running iOS-specific analysis...")
+
+            # SF Symbols analyzer
+            analyzer = IOSSymbolsAnalyzer(io=self.io, verbose=self.verbose)
+            report = analyzer.analyze_files(files_dict)
+            combined_report.results.extend(report.results)
+
+            # HIG compliance analyzer
+            analyzer = IOSHIGAnalyzer(io=self.io, verbose=self.verbose)
+            report = analyzer.analyze_files(files_dict)
+            combined_report.results.extend(report.results)
+
+            # Info.plist security analyzer
+            analyzer = IOSPlistAnalyzer(io=self.io, verbose=self.verbose)
             report = analyzer.analyze_files(files_dict)
             combined_report.results.extend(report.results)
 

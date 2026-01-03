@@ -11,6 +11,9 @@ from .security_analyzer import SecurityAnalyzer
 from .performance_analyzer import PerformanceAnalyzer
 from .quality_analyzer import QualityAnalyzer
 from .architecture_analyzer import ArchitectureAnalyzer
+from .ios_symbols_analyzer import IOSSymbolsAnalyzer
+from .ios_hig_analyzer import IOSHIGAnalyzer
+from .ios_plist_analyzer import IOSPlistAnalyzer
 
 __all__ = [
     "BaseAnalyzer",
@@ -22,4 +25,7 @@ __all__ = [
     "PerformanceAnalyzer",
     "QualityAnalyzer",
     "ArchitectureAnalyzer",
+    "IOSSymbolsAnalyzer",
+    "IOSHIGAnalyzer",
+    "IOSPlistAnalyzer",
 ]
