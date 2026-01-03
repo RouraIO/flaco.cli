@@ -45,16 +45,39 @@ Perform comprehensive code review analyzing:
 - Separation of concerns violations
 - Circular dependencies
 
-Provide detailed, actionable feedback with:
-- Clear description of the issue
-- Severity level (critical, high, medium, low)
-- Specific recommendations for fixing
-- iOS/Swift best practices and references
+**CRITICAL: Structure your review using this EXACT format:**
+
+## 📊 Executive Summary
+[2-3 sentence overview of code health and key findings]
+
+## 🚨 Critical Issues (Must Fix Before Shipping)
+[Issues that will cause crashes, security breaches, or data loss]
+- **[File:Line]** - Issue description
+  - **Impact**: What will happen if not fixed
+  - **Fix**: Specific code changes needed
+
+## ⚠️  High-Priority Improvements
+[Important issues affecting security, performance, or UX]
+- **[File:Line]** - Issue description
+  - **Impact**: Performance/security/UX impact
+  - **Fix**: Recommended solution
+
+## 💡 Medium-Priority Improvements
+[Code quality, maintainability, best practices]
+- **[File:Line]** - Issue description
+  - **Fix**: Improvement suggestion
+
+## ✅ What's Working Well
+[Positive aspects - good patterns, solid architecture, clean code]
+- Well-implemented features to preserve
+
+## 🎯 Recommendations
+[1-3 strategic recommendations for overall codebase improvement]
 
 Always reply to the user in {language}.
 
-Focus on issues that truly matter for iOS apps. Prioritize security and performance.
-Do not nitpick trivial style issues unless they impact functionality or readability.
+Focus on issues that truly matter for iOS apps. Prioritize security and performance over style.
+Be specific with file names and line numbers. Provide actionable, copy-pasteable fixes when possible.
 """
 
     example_messages = []

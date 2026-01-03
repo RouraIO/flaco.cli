@@ -1828,13 +1828,19 @@ Make the code production-ready and compilable."""
     def cmd_review(self, args):
         """Perform comprehensive code review
 
-        /review                    - Review entire project automatically
-        /review <filename>         - Review specific file (can omit extension)
-        /review --security         - Only security analysis
-        /review --performance      - Only performance analysis
-        /review --quality          - Only quality analysis
-        /review --architecture     - Only architecture analysis
-        /review --save <file>      - Save report to file
+        /review                        - Review entire project automatically
+        /review <filename>             - Review specific file (can omit extension)
+        /review --security             - Only security analysis
+        /review --performance          - Only performance analysis
+        /review --quality              - Only quality analysis
+        /review --architecture         - Only architecture analysis
+        /review --save <file>          - Save report to file
+        /review --ci                   - CI/CD mode (JSON output, exit code 1 if HIGH+ issues)
+        /review --fix                  - Interactive fix application
+        /review --baseline             - Save current state as baseline
+        /review --compare              - Compare against saved baseline (show only new issues)
+        /review --export-github        - Export HIGH+ issues to GitHub
+        /review --json                 - Output results as JSON
         """
         self._track_command("review")
 
@@ -1845,6 +1851,14 @@ Make the code production-ready and compilable."""
 
         # Parse arguments
         args_parts = args.strip().split() if args.strip() else []
+
+        # Extract new v2.0.0 flags
+        ci_mode = "--ci" in args_parts
+        fix_mode = "--fix" in args_parts
+        baseline_mode = "--baseline" in args_parts
+        compare_mode = "--compare" in args_parts
+        export_github = "--export-github" in args_parts
+        json_output = "--json" in args_parts or ci_mode  # CI mode implies JSON
 
         # Extract flags
         enable_security = "--security" in args_parts or not any(
@@ -1976,6 +1990,75 @@ Make the code production-ready and compilable."""
             enable_architecture=enable_architecture,
         )
 
+        # Baseline comparison (v2.0.0 feature)
+        baseline_comparison = None
+        if compare_mode or baseline_mode:
+            from flacoai.baseline_manager import BaselineManager
+
+            project_root = self.coder.root if self.coder.root else os.getcwd()
+            baseline_manager = BaselineManager(project_root)
+
+            if compare_mode:
+                baseline_comparison = baseline_manager.compare_with_baseline(report)
+
+                if baseline_comparison["baseline_exists"]:
+                    comp_stats = baseline_manager.get_stats(baseline_comparison)
+                    self.io.tool_output("\n📊 Baseline Comparison")
+                    self.io.tool_output(f"   New issues: {len(baseline_comparison['new_issues'])} (Critical: {comp_stats['new_critical']}, High: {comp_stats['new_high']}, Medium: {comp_stats['new_medium']}, Low: {comp_stats['new_low']})")
+                    self.io.tool_output(f"   Fixed issues: {len(baseline_comparison['fixed_issues'])} (Critical: {comp_stats['fixed_critical']}, High: {comp_stats['fixed_high']}, Medium: {comp_stats['fixed_medium']}, Low: {comp_stats['fixed_low']})")
+                    self.io.tool_output(f"   Unchanged: {len(baseline_comparison['unchanged_issues'])}")
+
+                    # Filter report to show only new issues
+                    report.results = baseline_comparison['new_issues']
+                else:
+                    self.io.tool_output("\n⚠️  No baseline found. Run '/review --baseline' to create one.")
+
+            if baseline_mode:
+                baseline_manager.save_baseline(report)
+                self.io.tool_output("\n✓ Baseline saved to .flaco/baselines/current.json")
+
+        # JSON output (v2.0.0 feature - for CI/CD)
+        if json_output:
+            import json
+            import sys
+
+            output_data = {
+                "files_analyzed": report.files_analyzed,
+                "total_issues": len(report.results),
+                "stats": report.get_stats(),
+                "issues": [
+                    {
+                        "file": r.file,
+                        "line": r.line,
+                        "severity": r.severity.value,
+                        "category": r.category.value,
+                        "title": r.title,
+                        "description": r.description,
+                        "recommendation": r.recommendation,
+                    }
+                    for r in report.results
+                ],
+            }
+
+            if baseline_comparison:
+                output_data["baseline_comparison"] = {
+                    "new_issues": len(baseline_comparison['new_issues']),
+                    "fixed_issues": len(baseline_comparison['fixed_issues']),
+                    "unchanged_issues": len(baseline_comparison['unchanged_issues']),
+                }
+
+            print(json.dumps(output_data, indent=2))
+
+            # CI mode: exit with code 1 if HIGH+ issues found
+            if ci_mode:
+                stats = report.get_stats()
+                if stats['critical'] > 0 or stats['high'] > 0:
+                    sys.exit(1)
+                else:
+                    sys.exit(0)
+
+            return  # Don't show regular output in JSON mode
+
         # Generate and display report
         generator = ReviewReportGenerator(io=self.io)
 
@@ -1989,16 +2072,54 @@ Make the code production-ready and compilable."""
         if save_file:
             generator.save_to_file(report, save_file)
 
+        # GitHub export (v2.0.0 feature)
+        if export_github:
+            from flacoai.integrations.github_exporter import GitHubExporter
+
+            self.io.tool_output("\n📤 Exporting to GitHub Issues...")
+            exporter = GitHubExporter(io=self.io)
+            created_issues = exporter.export_findings(report.results, severity_threshold="high")
+
+            if created_issues:
+                self.io.tool_output(f"\n✓ Created {len(created_issues)} GitHub issues")
+            else:
+                self.io.tool_output("\n⚠️  No issues were created (check if gh CLI is installed)")
+
+        # Interactive fix application (v2.0.0 feature)
+        if fix_mode:
+            from flacoai.fix_applicator import FixApplicator
+
+            self.io.tool_output("\n🔧 Interactive Fix Application")
+            self.io.tool_output("=" * 60)
+
+            applicator = FixApplicator(io=self.io)
+
+            # Generate auto-fixes for results
+            report.results = applicator.generate_auto_fixes(report.results)
+
+            # Apply fixes interactively
+            fix_stats = applicator.apply_fixes(report.results, auto_fix_safe=False)
+
+            self.io.tool_output(f"\n✓ Fixes applied: {fix_stats['applied']}")
+            self.io.tool_output(f"  Fixes skipped: {fix_stats['skipped']}")
+
+            if fix_stats['applied'] > 0:
+                self.io.tool_output("\n💡 Don't forget to review the changes and test your code!")
+
         # Summary message
         stats = report.get_stats()
         if stats['total'] == 0:
-            self.io.tool_output("✅ No issues found! Code looks good.")
+            self.io.tool_output("\n✅ No issues found! Code looks good.")
         else:
             self.io.tool_output(f"\n📊 Review complete: {stats['total']} issues found")
             self.io.tool_output(f"   Critical: {stats['critical']} | High: {stats['high']} | Medium: {stats['medium']} | Low: {stats['low']}")
 
-            if not save_file:
-                self.io.tool_output("\n💡 Tip: Use '/review --save report.md' to save the full report")
+            if not save_file and not json_output:
+                self.io.tool_output("\n💡 Tips:")
+                self.io.tool_output("   • Use '/review --save report.md' to save the full report")
+                self.io.tool_output("   • Use '/review --baseline' to track progress over time")
+                self.io.tool_output("   • Use '/review --export-github' to create GitHub issues")
+                self.io.tool_output("   • Use '/review --fix' to apply fixes interactively")
 
     def cmd_jira(self, args):
         """Interact with Jira issue tracker
