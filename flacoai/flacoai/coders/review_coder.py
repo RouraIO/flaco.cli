@@ -137,6 +137,33 @@ class ReviewCoder(AskCoder):
             report = analyzer.analyze_files(files_dict)
             combined_report.results.extend(report.results)
 
+        # Custom rules analyzer (v2.0.0 feature)
+        # Check for .flaco/rules.yaml or .flacoai/rules.yaml
+        from pathlib import Path
+        import os
+
+        project_root = os.getcwd()
+        custom_rules_paths = [
+            Path(project_root) / ".flaco" / "rules.yaml",
+            Path(project_root) / ".flacoai" / "rules.yaml",
+            Path(project_root) / "flaco-rules.yaml",
+        ]
+
+        for rules_path in custom_rules_paths:
+            if rules_path.exists():
+                if self.io:
+                    self.io.tool_output(f"Running custom rules from {rules_path.name}...")
+
+                from flacoai.analyzers import CustomRulesAnalyzer
+                analyzer = CustomRulesAnalyzer(
+                    rules_file=str(rules_path),
+                    io=self.io,
+                    verbose=self.verbose
+                )
+                report = analyzer.analyze_files(files_dict)
+                combined_report.results.extend(report.results)
+                break  # Only use first found rules file
+
         self.review_results = combined_report.results
         return combined_report
 

@@ -1927,40 +1927,22 @@ Make the code production-ready and compilable."""
                     self.io.tool_output(f"Found: {shortest} (multiple matches, using shortest path)")
 
         else:
-            # Mode 2: Review entire project automatically
-            self.io.tool_output("🔍 Auto-discovering files to review...")
+            # Mode 2: Review entire project automatically with smart context loading (v2.0.0)
+            self.io.tool_output("🔍 Smart file discovery (skipping generated code, build artifacts)...")
 
-            # Get all tracked files from repo if available
-            if self.coder.repo:
-                tracked_files = self.coder.repo.get_tracked_files()
-            else:
-                # Fallback: scan current directory
-                root_path = self.coder.root if self.coder.root else os.getcwd()
-                tracked_files = []
-                for root, dirs, files in os.walk(root_path):
-                    # Skip hidden and common ignore patterns
-                    dirs[:] = [d for d in dirs if not d.startswith('.') and d not in [
-                        'node_modules', '__pycache__', 'venv', 'env', '.git', 'dist', 'build'
-                    ]]
+            from flacoai.smart_context import SmartContextLoader
 
-                    for f in files:
-                        if not f.startswith('.'):
-                            tracked_files.append(os.path.join(root, f))
+            root_path = self.coder.root if self.coder.root else os.getcwd()
+            context_loader = SmartContextLoader(root_path, io=self.io)
 
-            # Filter to code files only
-            code_extensions = {
-                'py', 'js', 'ts', 'jsx', 'tsx', 'java', 'rb', 'go', 'php',
-                'cs', 'cpp', 'c', 'h', 'hpp', 'rs', 'kt', 'swift', 'scala',
-                'vue', 'html', 'htm', 'sql', 'sh', 'bash'
-            }
+            # Use smart context loader
+            files_to_review = context_loader.get_relevant_files(
+                focus_files=None,
+                include_tests=True,
+                max_files=100  # Reasonable limit for performance
+            )
 
-            for fpath in tracked_files:
-                ext = Path(fpath).suffix.lstrip('.').lower()
-                if ext in code_extensions:
-                    full_path = os.path.abspath(fpath) if not os.path.isabs(fpath) else fpath
-                    files_to_review.add(full_path)
-
-            self.io.tool_output(f"📁 Found {len(files_to_review)} code files to analyze")
+            self.io.tool_output(f"📁 Found {len(files_to_review)} relevant code files to analyze")
 
         if not files_to_review:
             self.io.tool_error("No files to review")

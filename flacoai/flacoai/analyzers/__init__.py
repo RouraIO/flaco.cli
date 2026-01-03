@@ -18,6 +18,7 @@ from .swiftui_analyzer import SwiftUIAnalyzer
 from .ios_version_analyzer import IOSVersionAnalyzer
 from .spm_analyzer import SPMAnalyzer
 from .documentation_analyzer import DocumentationAnalyzer
+from .custom_rules_analyzer import CustomRulesAnalyzer
 
 __all__ = [
     "BaseAnalyzer",
@@ -36,4 +37,5 @@ __all__ = [
     "IOSVersionAnalyzer",
     "SPMAnalyzer",
     "DocumentationAnalyzer",
+    "CustomRulesAnalyzer",
 ]
