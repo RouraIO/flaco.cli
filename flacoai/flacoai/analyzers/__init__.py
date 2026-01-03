@@ -14,6 +14,9 @@ from .architecture_analyzer import ArchitectureAnalyzer
 from .ios_symbols_analyzer import IOSSymbolsAnalyzer
 from .ios_hig_analyzer import IOSHIGAnalyzer
 from .ios_plist_analyzer import IOSPlistAnalyzer
+from .swiftui_analyzer import SwiftUIAnalyzer
+from .ios_version_analyzer import IOSVersionAnalyzer
+from .spm_analyzer import SPMAnalyzer
 
 __all__ = [
     "BaseAnalyzer",
@@ -28,4 +31,7 @@ __all__ = [
     "IOSSymbolsAnalyzer",
     "IOSHIGAnalyzer",
     "IOSPlistAnalyzer",
+    "SwiftUIAnalyzer",
+    "IOSVersionAnalyzer",
+    "SPMAnalyzer",
 ]

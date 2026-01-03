@@ -39,6 +39,9 @@ class ReviewCoder(AskCoder):
             IOSSymbolsAnalyzer,
             IOSHIGAnalyzer,
             IOSPlistAnalyzer,
+            SwiftUIAnalyzer,
+            IOSVersionAnalyzer,
+            SPMAnalyzer,
             AnalysisReport,
         )
 
@@ -110,6 +113,21 @@ class ReviewCoder(AskCoder):
 
             # Info.plist security analyzer
             analyzer = IOSPlistAnalyzer(io=self.io, verbose=self.verbose)
+            report = analyzer.analyze_files(files_dict)
+            combined_report.results.extend(report.results)
+
+            # SwiftUI best practices analyzer
+            analyzer = SwiftUIAnalyzer(io=self.io, verbose=self.verbose)
+            report = analyzer.analyze_files(files_dict)
+            combined_report.results.extend(report.results)
+
+            # iOS version/API compatibility analyzer
+            analyzer = IOSVersionAnalyzer(io=self.io, verbose=self.verbose)
+            report = analyzer.analyze_files(files_dict)
+            combined_report.results.extend(report.results)
+
+            # Swift Package Manager analyzer
+            analyzer = SPMAnalyzer(io=self.io, verbose=self.verbose)
             report = analyzer.analyze_files(files_dict)
             combined_report.results.extend(report.results)
 
