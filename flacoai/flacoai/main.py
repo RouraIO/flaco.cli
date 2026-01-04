@@ -5,9 +5,13 @@ import sys
 import threading
 import time
 import traceback
+import warnings
 import webbrowser
 from dataclasses import fields
 from pathlib import Path
+
+# Suppress urllib3 LibreSSL warning
+warnings.filterwarnings('ignore', category=Warning, message='.*OpenSSL.*')
 
 try:
     import git

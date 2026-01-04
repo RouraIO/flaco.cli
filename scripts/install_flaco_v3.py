@@ -14,7 +14,11 @@ Features:
 import os
 import sys
 import subprocess
+import warnings
 from pathlib import Path
+
+# Suppress urllib3 LibreSSL warning
+warnings.filterwarnings('ignore', category=Warning, message='.*OpenSSL.*')
 
 # Colors
 CYAN = '\033[0;36m'
