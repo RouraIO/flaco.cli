@@ -1,0 +1,159 @@
+import SwiftUI
+
+struct {VIEW_NAME}: View {
+    let item: {ITEM_TYPE}
+    @State private var isEditing: Bool = false
+    @State private var showingDeleteAlert: Bool = false
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Header Image (optional)
+                if let imageURL = item.{IMAGE_FIELD} {
+                    AsyncImage(url: URL(string: imageURL)) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        case .failure:
+                            Image(systemName: "photo")
+                                .font(.largeTitle)
+                                .foregroundColor(.gray)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                    .frame(height: 200)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
+                    .cornerRadius(12)
+                }
+
+                // Title
+                Text(item.{TITLE_FIELD})
+                    .font(.title)
+                    .fontWeight(.bold)
+
+                // Metadata
+                HStack(spacing: 16) {
+                    Label(item.{DATE_FIELD}.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
+
+                    // Add more metadata here
+                }
+                .font(.caption)
+                .foregroundColor(.gray)
+
+                Divider()
+
+                // Main Content Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Description")
+                        .font(.headline)
+
+                    Text(item.{DESCRIPTION_FIELD})
+                        .font(.body)
+                        .foregroundColor(.primary)
+                }
+
+                // Additional Sections
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Details")
+                        .font(.headline)
+
+                    // TODO: Add more detail fields based on your {ITEM_TYPE}
+                    DetailRow(title: "Status", value: item.{STATUS_FIELD})
+                    DetailRow(title: "Category", value: item.{CATEGORY_FIELD})
+                }
+
+                Spacer()
+            }
+            .padding()
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: {
+                        isEditing = true
+                    }) {
+                        Label("Edit", systemImage: "pencil")
+                    }
+
+                    Button(action: {
+                        handleShare()
+                    }) {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+
+                    Divider()
+
+                    Button(role: .destructive, action: {
+                        showingDeleteAlert = true
+                    }) {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        .sheet(isPresented: $isEditing) {
+            Edit{ITEM_TYPE}View(item: item) { updatedItem in
+                // Handle item update
+                isEditing = false
+            }
+        }
+        .alert("Delete Item", isPresented: $showingDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                handleDelete()
+            }
+        } message: {
+            Text("Are you sure you want to delete this item? This action cannot be undone.")
+        }
+    }
+
+    private func handleShare() {
+        // TODO: Implement share functionality
+        // Example:
+        // let activityVC = UIActivityViewController(activityItems: [item.{TITLE_FIELD}], applicationActivities: nil)
+        // UIApplication.shared.windows.first?.rootViewController?.present(activityVC, animated: true)
+    }
+
+    private func handleDelete() {
+        // TODO: Implement delete logic
+        // Example:
+        // Task {
+        //     try await DataService.shared.delete(item)
+        //     dismiss()
+        // }
+        dismiss()
+    }
+}
+
+// MARK: - Detail Row
+struct DetailRow: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .foregroundColor(.gray)
+            Spacer()
+            Text(value)
+                .fontWeight(.medium)
+        }
+        .font(.subheadline)
+    }
+}
+
+#Preview {
+    NavigationView {
+        {VIEW_NAME}(item: {ITEM_TYPE}.sample)
+    }
+}
