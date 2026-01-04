@@ -291,7 +291,28 @@ def main():
     print(f"  {GREEN}✓{NC} Configuration saved to {CYAN}{shell_profile}{NC}")
 
     # =========================================================================
-    # 7. CREATE EXECUTABLE
+    # 7. INSTALL DEPENDENCIES
+    # =========================================================================
+    print_section("📦 Installing Python Dependencies")
+
+    print(f"{CYAN}  Installing required packages...{NC}\n")
+
+    # Install in user site-packages (--user flag)
+    install_cmd = [
+        sys.executable, "-m", "pip", "install", "--user", "--quiet",
+        "-r", str(project_root / "flacoai" / "requirements.txt")
+    ]
+
+    try:
+        result = subprocess.run(install_cmd, capture_output=True, text=True, check=True)
+        print(f"  {GREEN}✓{NC} Dependencies installed successfully")
+    except subprocess.CalledProcessError as e:
+        print(f"  {YELLOW}⚠{NC}  Some packages may have failed to install")
+        print(f"  {CYAN}→{NC} You can manually install with:")
+        print(f"    {CYAN}pip3 install --user -r {project_root}/flacoai/requirements.txt{NC}\n")
+
+    # =========================================================================
+    # 8. CREATE EXECUTABLE
     # =========================================================================
     print_section("🔧 Creating Flaco AI Executable")
 
@@ -327,7 +348,7 @@ if __name__ == "__main__":
     print(f"  {GREEN}✓{NC} Created executable: {CYAN}{flaco_bin}{NC}")
 
     # =========================================================================
-    # 8. VERIFY INSTALLATION
+    # 9. VERIFY INSTALLATION
     # =========================================================================
     print_section("✅ Verifying Installation")
 
@@ -355,7 +376,7 @@ if __name__ == "__main__":
             print(f"    {CYAN}→ Start Ollama with: ollama serve{NC}")
 
     # =========================================================================
-    # 9. NEXT STEPS
+    # 10. NEXT STEPS
     # =========================================================================
     print_section("🚀 Installation Complete!")
 
