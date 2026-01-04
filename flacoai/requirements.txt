@@ -549,4 +549,4 @@ zipp==3.23.0
 tree-sitter==0.23.2; python_version < "3.10"
 tree-sitter==0.25.2; python_version >= "3.10"
 jira>=3.5.0
-mod-pbxproj>=4.1.0
+pbxproj>=4.1.0
