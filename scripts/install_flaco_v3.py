@@ -297,11 +297,9 @@ def main():
     print(f"  {GREEN}✓{NC} Configuration saved to {CYAN}{shell_profile}{NC}")
 
     # =========================================================================
-    # 7. INSTALL DEPENDENCIES
+    # 7. CREATE VIRTUAL ENVIRONMENT & INSTALL DEPENDENCIES
     # =========================================================================
-    print_section("📦 Installing Python Dependencies")
-
-    print(f"{CYAN}  Installing required packages (this may take a minute)...{NC}\n")
+    print_section("📦 Setting Up Python Environment")
 
     # Find the best Python 3 (prefer Homebrew over system Python)
     python_candidates = [
@@ -326,23 +324,42 @@ def main():
                 major_minor = f"{version_parts[0]}.{version_parts[1]}"
                 if float(major_minor) >= 3.10:
                     python_cmd = candidate
-                    print(f"  {GREEN}✓{NC} Using {candidate} ({version_str})")
+                    print(f"  {GREEN}✓{NC} Found Python {version_str} at {candidate}")
                     break
         except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
             continue
 
+    # Create virtual environment
+    venv_path = project_root / "venv"
+    print(f"\n  {CYAN}→{NC} Creating virtual environment...")
+
+    try:
+        subprocess.run([python_cmd, "-m", "venv", str(venv_path)], check=True, capture_output=True)
+        print(f"  {GREEN}✓{NC} Virtual environment created at {venv_path}")
+    except subprocess.CalledProcessError as e:
+        print(f"\n  {RED}✗{NC} Failed to create virtual environment")
+        print(f"  {CYAN}→{NC} Error: {e.stderr.decode() if e.stderr else 'Unknown error'}")
+        sys.exit(1)
+
+    # Install dependencies in venv
+    venv_python = venv_path / "bin" / "python3"
+    venv_pip = venv_path / "bin" / "pip"
+
+    print(f"\n  {CYAN}→{NC} Installing dependencies (this may take 2-3 minutes)...")
+
     install_cmd = [
-        python_cmd, "-m", "pip", "install", "--user",
+        str(venv_pip), "install", "-q",
         "-r", str(project_root / "flacoai" / "requirements.txt")
     ]
 
     try:
-        result = subprocess.run(install_cmd, check=True)
-        print(f"\n  {GREEN}✓{NC} Dependencies installed successfully")
+        result = subprocess.run(install_cmd, check=True, capture_output=True, text=True)
+        print(f"  {GREEN}✓{NC} All dependencies installed successfully")
     except subprocess.CalledProcessError as e:
         print(f"\n  {RED}✗{NC} Failed to install dependencies")
+        print(f"  {CYAN}→{NC} Error: {e.stderr if e.stderr else 'Unknown error'}")
         print(f"  {CYAN}→{NC} Try manually:")
-        print(f"    {CYAN}{python_cmd} -m pip install --user -r {project_root}/flacoai/requirements.txt{NC}\n")
+        print(f"    {CYAN}{venv_pip} install -r {project_root}/flacoai/requirements.txt{NC}\n")
         sys.exit(1)
 
     # =========================================================================
@@ -352,7 +369,7 @@ def main():
 
     flaco_bin = local_bin / 'flaco'
 
-    executable_content = f"""#!/usr/bin/env python3
+    executable_content = f"""#!{venv_python}
 # Flaco AI v3.0.0 CLI Launcher
 
 import os
