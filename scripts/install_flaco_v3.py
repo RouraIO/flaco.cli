@@ -122,7 +122,7 @@ def main():
         try:
             import requests
             import json
-            response = requests.get(f"http://{ollama_server}/api/tags", timeout=3)
+            response = requests.get(f"http://{ollama_server}/api/tags", timeout=10)
             if response.status_code == 200:
                 models_data = response.json()
                 available_models = [m['name'] for m in models_data.get('models', [])]
@@ -131,8 +131,10 @@ def main():
                     for model in available_models[:10]:  # Show first 10
                         print(f"    • {model}")
                     print()
-        except:
-            pass
+        except Exception as e:
+            # Connection failed - show warning
+            print(f"  {YELLOW}⚠{NC}  Could not connect to Ollama server: {ollama_server}")
+            print(f"    {CYAN}Make sure Ollama is running on that server{NC}\n")
 
         if not available_models:
             print(f"  {CYAN}Popular choices: qwen2.5-coder:32b, deepseek-r1:32b, codellama:34b{NC}\n")
@@ -191,7 +193,7 @@ def main():
         print(f"\n{CYAN}→{NC} Configuring Jira...")
 
         jira_url = get_input("Jira URL (e.g., https://yourcompany.atlassian.net)", required=True)
-        jira_email = get_input("Jira email", git_email)
+        jira_email = get_input("Jira email", "jira@example.com")
 
         print(f"\n  {CYAN}Get API token from: https://id.atlassian.com/manage-profile/security/api-tokens{NC}\n")
         jira_token = get_input("Jira API token", required=True)
