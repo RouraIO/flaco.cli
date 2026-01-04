@@ -116,9 +116,29 @@ def main():
 
         # Ask for default Ollama model
         print(f"\n{CYAN}→{NC} Default Ollama model...")
-        print(f"  {CYAN}Popular choices: qwen2.5-coder:32b, deepseek-r1:32b, codellama:34b{NC}\n")
 
-        default_model = get_input("Default model", "qwen2.5-coder:32b")
+        # Try to detect available Ollama models
+        available_models = []
+        try:
+            import requests
+            import json
+            response = requests.get(f"http://{ollama_server}/api/tags", timeout=3)
+            if response.status_code == 200:
+                models_data = response.json()
+                available_models = [m['name'] for m in models_data.get('models', [])]
+                if available_models:
+                    print(f"  {CYAN}Available models on your Ollama server:{NC}")
+                    for model in available_models[:10]:  # Show first 10
+                        print(f"    • {model}")
+                    print()
+        except:
+            pass
+
+        if not available_models:
+            print(f"  {CYAN}Popular choices: qwen2.5-coder:32b, deepseek-r1:32b, codellama:34b{NC}\n")
+
+        suggested_default = available_models[0] if available_models else "qwen2.5-coder:32b"
+        default_model = get_input("Default model", suggested_default)
         config['DEFAULT_MODEL'] = f"openai/{default_model}"
 
     # Configure Claude API if selected
@@ -145,22 +165,9 @@ def main():
 
     print(f"{CYAN}  Configure Git user for commits made by Flaco AI{NC}\n")
 
-    # Try to get existing git config
-    try:
-        existing_name = subprocess.run(
-            ["git", "config", "--global", "user.name"],
-            capture_output=True, text=True, check=False
-        ).stdout.strip()
-        existing_email = subprocess.run(
-            ["git", "config", "--global", "user.email"],
-            capture_output=True, text=True, check=False
-        ).stdout.strip()
-    except:
-        existing_name = ""
-        existing_email = ""
-
-    git_name = get_input("Git user name", existing_name or "Your Name")
-    git_email = get_input("Git email", existing_email or "you@example.com")
+    # Don't show existing git config as default - use placeholders instead
+    git_name = get_input("Git user name", "Your Name")
+    git_email = get_input("Git email", "you@example.com")
 
     config['GIT_USER_NAME'] = git_name
     config['GIT_USER_EMAIL'] = git_email
@@ -289,9 +296,8 @@ def main():
     print_section("🔧 Creating Flaco AI Executable")
 
     flaco_bin = local_bin / 'flaco'
-    venv_python = project_root / "venv" / "bin" / "python3"
 
-    executable_content = f"""#!{venv_python}
+    executable_content = f"""#!/usr/bin/env python3
 # Flaco AI v3.0.0 CLI Launcher
 
 import os
