@@ -124,17 +124,20 @@ def main():
         # Try to detect available Ollama models
         available_models = []
         try:
-            import requests
             import json
-            response = requests.get(f"http://{ollama_server}/api/tags", timeout=10)
-            if response.status_code == 200:
-                models_data = response.json()
-                available_models = [m['name'] for m in models_data.get('models', [])]
-                if available_models:
-                    print(f"  {CYAN}Available models on your Ollama server:{NC}")
-                    for model in available_models[:10]:  # Show first 10
-                        print(f"    • {model}")
-                    print()
+            import urllib.request
+
+            req = urllib.request.Request(f"http://{ollama_server}/api/tags")
+            with urllib.request.urlopen(req, timeout=10) as response:
+                if response.status == 200:
+                    data = response.read()
+                    models_data = json.loads(data.decode('utf-8'))
+                    available_models = [m['name'] for m in models_data.get('models', [])]
+                    if available_models:
+                        print(f"  {CYAN}Available models on your Ollama server:{NC}")
+                        for model in available_models[:10]:  # Show first 10
+                            print(f"    • {model}")
+                        print()
         except Exception as e:
             # Connection failed - show warning
             print(f"  {YELLOW}⚠{NC}  Could not connect to Ollama server: {ollama_server}")
