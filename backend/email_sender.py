@@ -45,6 +45,13 @@ class EmailSender:
         Returns:
             True if email sent successfully
         """
+        # Validate email address
+        if not to_email or not isinstance(to_email, str) or "@" not in to_email:
+            self.logger.error(f"Invalid email address: {to_email}")
+            return False
+
+        self.logger.info(f"Preparing license email for {to_email}")
+
         subject = f"🎉 Welcome to Flaco AI {tier.upper()} - Your License Key"
 
         body_html = f"""
@@ -272,14 +279,25 @@ Feedback: feedback@roura.io
         smtp_user = os.getenv("SMTP_USER")
         smtp_pass = os.getenv("SMTP_PASS")
 
+        self.logger.info(
+            f"SMTP config: host={smtp_host}, port={smtp_port}, "
+            f"user={smtp_user}, from={self.from_email}"
+        )
+
         if not all([smtp_host, smtp_user, smtp_pass]):
-            self.logger.error("SMTP credentials not configured")
+            missing = []
+            if not smtp_host: missing.append("SMTP_HOST")
+            if not smtp_user: missing.append("SMTP_USER")
+            if not smtp_pass: missing.append("SMTP_PASS")
+            self.logger.error(f"SMTP credentials not configured. Missing: {', '.join(missing)}")
             return False
 
         try:
             import smtplib
             from email.mime.multipart import MIMEMultipart
             from email.mime.text import MIMEText
+
+            self.logger.info(f"Building email message to {to_email}...")
 
             msg = MIMEMultipart("alternative")
             msg["From"] = f"{self.from_name} <{self.from_email}>"
@@ -289,14 +307,39 @@ Feedback: feedback@roura.io
             msg.attach(MIMEText(body_text, "plain"))
             msg.attach(MIMEText(body_html, "html"))
 
-            with smtplib.SMTP(smtp_host, smtp_port) as server:
+            self.logger.info(f"Connecting to SMTP server {smtp_host}:{smtp_port}...")
+
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+                server.set_debuglevel(0)  # Set to 1 for verbose SMTP debugging
+
+                self.logger.info("Starting TLS...")
                 server.starttls()
+
+                self.logger.info(f"Logging in as {smtp_user}...")
                 server.login(smtp_user, smtp_pass)
+
+                self.logger.info(f"Sending message to {to_email}...")
                 server.send_message(msg)
 
-            self.logger.info(f"Email sent to {to_email} via SMTP")
+            self.logger.info(f"✅ Email sent successfully to {to_email} via SMTP")
             return True
 
+        except smtplib.SMTPAuthenticationError as e:
+            self.logger.error(
+                f"❌ SMTP Authentication failed: {e}\n"
+                f"   Check SMTP_USER ({smtp_user}) and SMTP_PASS are correct.\n"
+                f"   For Gmail, ensure you're using an App Password, not your regular password."
+            )
+            return False
+        except smtplib.SMTPException as e:
+            self.logger.error(
+                f"❌ SMTP error: {type(e).__name__}: {e}",
+                exc_info=True
+            )
+            return False
         except Exception as e:
-            self.logger.error(f"Failed to send email via SMTP: {e}")
+            self.logger.error(
+                f"❌ Unexpected error sending email: {type(e).__name__}: {e}",
+                exc_info=True
+            )
             return False
