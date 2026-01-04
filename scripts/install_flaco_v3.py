@@ -301,21 +301,22 @@ def main():
     # =========================================================================
     print_section("📦 Installing Python Dependencies")
 
-    print(f"{CYAN}  Installing required packages...{NC}\n")
+    print(f"{CYAN}  Installing required packages (this may take a minute)...{NC}\n")
 
-    # Install in user site-packages (--user flag)
+    # Use python3 from PATH (not sys.executable which may be old system Python)
     install_cmd = [
-        sys.executable, "-m", "pip", "install", "--user", "--quiet",
+        "python3", "-m", "pip", "install", "--user",
         "-r", str(project_root / "flacoai" / "requirements.txt")
     ]
 
     try:
-        result = subprocess.run(install_cmd, capture_output=True, text=True, check=True)
-        print(f"  {GREEN}✓{NC} Dependencies installed successfully")
+        result = subprocess.run(install_cmd, check=True)
+        print(f"\n  {GREEN}✓{NC} Dependencies installed successfully")
     except subprocess.CalledProcessError as e:
-        print(f"  {YELLOW}⚠{NC}  Some packages may have failed to install")
-        print(f"  {CYAN}→{NC} You can manually install with:")
-        print(f"    {CYAN}pip3 install --user -r {project_root}/flacoai/requirements.txt{NC}\n")
+        print(f"\n  {RED}✗{NC} Failed to install dependencies")
+        print(f"  {CYAN}→{NC} Try manually:")
+        print(f"    {CYAN}python3 -m pip install --user -r {project_root}/flacoai/requirements.txt{NC}\n")
+        sys.exit(1)
 
     # =========================================================================
     # 8. CREATE EXECUTABLE
