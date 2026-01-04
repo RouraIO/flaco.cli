@@ -4,6 +4,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import webbrowser
 from collections import OrderedDict
 from os.path import expanduser
 from pathlib import Path
@@ -3669,6 +3670,17 @@ Just show me the edits I need to make.
             self.io.tool_output("  📧 trial@roura.io")
             self.io.tool_output("")
             self.io.tool_output("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            self.io.tool_output("")
+
+            # Open the pricing page in the default browser
+            pricing_url = "https://flaco-license-server.onrender.com/pricing"
+            self.io.tool_output("Opening pricing page in your browser...")
+            try:
+                webbrowser.open(pricing_url)
+                self.io.tool_output("✓ Browser opened successfully")
+            except Exception as e:
+                self.io.tool_error(f"Failed to open browser: {e}")
+                self.io.tool_output(f"Please visit manually: {pricing_url}")
             self.io.tool_output("")
 
         else:

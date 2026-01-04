@@ -149,8 +149,8 @@ def create_checkout_session():
                 "quantity": 1,
             }],
             mode="subscription",
-            success_url=os.getenv("STRIPE_SUCCESS_URL", "https://flaco.ai/success?session_id={CHECKOUT_SESSION_ID}"),
-            cancel_url=os.getenv("STRIPE_CANCEL_URL", "https://flaco.ai/pricing"),
+            success_url=os.getenv("STRIPE_SUCCESS_URL", "https://flaco-license-server.onrender.com/success?session_id={CHECKOUT_SESSION_ID}"),
+            cancel_url=os.getenv("STRIPE_CANCEL_URL", "https://flaco-license-server.onrender.com/pricing"),
             metadata={
                 "tier": tier,
                 "billing": billing,
@@ -240,6 +240,115 @@ def verify_license():
     except Exception as e:
         app.logger.error(f"Error verifying license: {e}")
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/success")
+def success_page():
+    """Success page after checkout completion."""
+    session_id = request.args.get("session_id")
+
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Payment Successful - Flaco AI</title>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, #007aff 0%, #5ac8fa 100%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+            }
+            .success-container {
+                background: white;
+                border-radius: 16px;
+                padding: 60px 40px;
+                max-width: 500px;
+                text-align: center;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            }
+            .checkmark {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                background: #00a86b;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 auto 30px;
+                animation: scaleIn 0.5s ease-out;
+            }
+            .checkmark::after {
+                content: "✓";
+                color: white;
+                font-size: 48px;
+                font-weight: bold;
+            }
+            @keyframes scaleIn {
+                from { transform: scale(0); }
+                to { transform: scale(1); }
+            }
+            h1 {
+                font-size: 32px;
+                margin: 0 0 16px 0;
+                color: #1d1d1f;
+            }
+            p {
+                font-size: 18px;
+                color: #666;
+                line-height: 1.6;
+                margin: 16px 0;
+            }
+            .email-box {
+                background: #f5f5f7;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 30px 0;
+            }
+            .email-box strong {
+                color: #007aff;
+                font-size: 20px;
+            }
+            .close-button {
+                background: #007aff;
+                color: white;
+                border: none;
+                padding: 14px 32px;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+                margin-top: 20px;
+            }
+            .close-button:hover {
+                background: #0051d5;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="success-container">
+            <div class="checkmark"></div>
+            <h1>Payment Successful!</h1>
+            <p>Thank you for upgrading to Flaco AI PRO</p>
+
+            <div class="email-box">
+                <p><strong>📧 Check Your Email</strong></p>
+                <p style="margin: 0;">We've sent your license key to your email address. It should arrive within a few minutes.</p>
+            </div>
+
+            <p style="font-size: 14px; color: #999;">
+                Didn't receive it? Check your spam folder or contact us at support@roura.io
+            </p>
+
+            <button class="close-button" onclick="window.close()">Close Window</button>
+        </div>
+    </body>
+    </html>
+    """
+    return render_template_string(html)
 
 
 @app.route("/pricing")
