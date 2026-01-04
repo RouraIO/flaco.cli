@@ -303,9 +303,36 @@ def main():
 
     print(f"{CYAN}  Installing required packages (this may take a minute)...{NC}\n")
 
-    # Use python3 from PATH (not sys.executable which may be old system Python)
+    # Find the best Python 3 (prefer Homebrew over system Python)
+    python_candidates = [
+        "/opt/homebrew/bin/python3",  # Homebrew (macOS ARM)
+        "/usr/local/bin/python3",      # Homebrew (macOS Intel)
+        "python3",                      # System Python (fallback)
+    ]
+
+    python_cmd = "python3"  # default
+    for candidate in python_candidates:
+        try:
+            result = subprocess.run(
+                [candidate, "--version"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            version_str = result.stdout.strip()
+            # Extract version number (e.g., "Python 3.14.2" -> "3.14")
+            if "Python" in version_str:
+                version_parts = version_str.split()[1].split('.')
+                major_minor = f"{version_parts[0]}.{version_parts[1]}"
+                if float(major_minor) >= 3.10:
+                    python_cmd = candidate
+                    print(f"  {GREEN}✓{NC} Using {candidate} ({version_str})")
+                    break
+        except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
+            continue
+
     install_cmd = [
-        "python3", "-m", "pip", "install", "--user",
+        python_cmd, "-m", "pip", "install", "--user",
         "-r", str(project_root / "flacoai" / "requirements.txt")
     ]
 
@@ -315,7 +342,7 @@ def main():
     except subprocess.CalledProcessError as e:
         print(f"\n  {RED}✗{NC} Failed to install dependencies")
         print(f"  {CYAN}→{NC} Try manually:")
-        print(f"    {CYAN}python3 -m pip install --user -r {project_root}/flacoai/requirements.txt{NC}\n")
+        print(f"    {CYAN}{python_cmd} -m pip install --user -r {project_root}/flacoai/requirements.txt{NC}\n")
         sys.exit(1)
 
     # =========================================================================
