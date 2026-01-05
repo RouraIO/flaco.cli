@@ -46,6 +46,14 @@ LICENSE_DB_PATH = (
     or os.path.join(os.path.dirname(__file__), "data", "flaco_licenses.sqlite3")
 )
 
+# Optional: Postgres on Render/managed DBs (preferred for durability).
+# If set, overrides SQLite file storage.
+LICENSE_DB_URL = (
+    os.getenv("LICENSE_DB_URL")
+    or os.getenv("DATABASE_URL")
+    or os.getenv("FLACO_DATABASE_URL")
+)
+
 PRO_EXAMPLES_PATH = (
     os.getenv("PRO_EXAMPLES_PATH")
     or os.getenv("FLACO_PRO_EXAMPLES_PATH")
@@ -59,7 +67,7 @@ if not STRIPE_SECRET_KEY and not FLACO_TESTING:
 stripe.api_key = STRIPE_SECRET_KEY or "sk_test_testing"
 
 # Durable storage
-license_store = LicenseStore(LICENSE_DB_PATH)
+license_store = LicenseStore(LICENSE_DB_PATH, db_url=LICENSE_DB_URL)
 
 # Initialize handlers
 webhook_handler = StripeWebhookHandler(
