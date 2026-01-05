@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+
+emulate -LR bash
 
 # Exit on error
 set -e

@@ -116,6 +116,11 @@ def format_session_header(session_info):
     # Session start time
     parts.append(f"🕐  {session_info['session_start']}")
 
+    # License tier (optional)
+    tier = (session_info.get("tier") or session_info.get("license_tier") or "").strip()
+    if tier:
+        parts.append(f"🎟️  {tier}")
+
     # Join with visual separator
     separator = "  │  "
     header = separator.join(parts)
@@ -251,7 +256,8 @@ def format_directory_note(current_dir, git_dir):
 
 def format_compact_header(model_name, edit_format, directory, branch=None, file_count=0,
                          thinking_tokens=None, reasoning_effort=None, cache_enabled=False,
-                         infinite_output=False, repo_map_tokens=None, repo_map_refresh=None):
+                         infinite_output=False, repo_map_tokens=None, repo_map_refresh=None,
+                         plan=None):
     """Format a compact, organized header (3 labeled lines).
 
     Args:
@@ -298,11 +304,15 @@ def format_compact_header(model_name, edit_format, directory, branch=None, file_
     if directory.startswith(home):
         directory = '~' + directory[len(home):]
 
-    # Line 1: Model
-    line1 = f"🤖 Model: {model_info}"
+    lines = []
+    if plan:
+        lines.append(f"🎟️ Plan: {plan}")
 
-    # Line 2: Directory
-    line2 = f"📁 Directory: {directory}"
+    # Next line: Model
+    lines.append(f"🤖 Model: {model_info}")
+
+    # Directory
+    lines.append(f"📁 Directory: {directory}")
 
     # Line 3: Branch, files, repo-map
     line3_parts = []
@@ -314,9 +324,6 @@ def format_compact_header(model_name, edit_format, directory, branch=None, file_
         line3_parts.append(f"🗺️  {repo_map_tokens} tokens ({repo_map_refresh})")
 
     line3 = " • ".join(line3_parts) if line3_parts else ""
-
-    # Return all lines
-    lines = [line1, line2]
     if line3:
         lines.append(line3)
 

@@ -1,5 +1,7 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env zsh
+set -e
+set -u
+setopt pipefail
 
 # Flaco AI Installer
 # Installs Flaco AI CLI and sets up shell aliases
@@ -29,8 +31,8 @@ EOF
 echo -e "${NC}\n"
 
 # Get the directory where this script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+SCRIPT_DIR="${0:A:h}"
+PROJECT_ROOT="${SCRIPT_DIR:h}"
 
 # Ensure ~/.local/bin exists
 LOCAL_BIN="$HOME/.local/bin"
@@ -41,8 +43,12 @@ echo -e "${CYAN}→${NC} Creating Flaco AI executable..."
 # Create the main executable
 FLACO_BIN="$LOCAL_BIN/flaco"
 cat > "$FLACO_BIN" << FLACO_SCRIPT_EOF
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 # Flaco AI CLI Launcher
+
+set -e
+set -u
+setopt pipefail
 
 PROJECT_ROOT="$PROJECT_ROOT"
 

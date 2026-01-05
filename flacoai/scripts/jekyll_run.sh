@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+
+emulate -LR bash
 
 # Run the Docker container with optimizations for faster builds
 docker run \

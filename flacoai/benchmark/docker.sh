@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+
+emulate -LR bash
 
 docker run \
        -it --rm \
@@ -8,7 +10,7 @@ docker run \
        -v `pwd`:/flacoai \
        -v `pwd`/tmp.benchmarks/.:/benchmarks \
        -e OPENAI_API_KEY=$OPENAI_API_KEY \
-       -e HISTFILE=/flacoai/.bash_history \
+       -e HISTFILE=/flacoai/.sh_history \
        -e PROMPT_COMMAND='history -a' \
        -e HISTCONTROL=ignoredups \
        -e HISTSIZE=10000 \
@@ -16,4 +18,4 @@ docker run \
        -e flacoai_DOCKER=1 \
        -e flacoai_BENCHMARK_DIR=/benchmarks \
        flacoai-benchmark \
-       bash
+       sh

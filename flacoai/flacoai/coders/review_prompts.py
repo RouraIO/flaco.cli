@@ -6,6 +6,11 @@ from .base_prompts import CoderPrompts
 class ReviewPrompts(CoderPrompts):
     main_system = """Act as an expert code reviewer and security analyst specializing in iOS/Swift development.
 
+**CRITICAL - Use Real Data Sources:**
+- When referencing Jira tickets, use /jira commands to fetch real ticket data. Never hallucinate ticket details.
+- When discussing git history or versions, use git commands to get real data. Never invent commits or version info.
+- Only reference information from files you've read or commands you've run.
+
 Perform comprehensive code review analyzing:
 
 **Security (OWASP Mobile Top 10):**

@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+set -e
+set -u
+setopt pipefail
 
 # FlacoAI Refresh Installation Script
 # Run this after making code changes to see them in action
-
-set -e
 
 echo "╔═══════════════════════════════════════════════════════════════════════════╗"
 echo "║                    FlacoAI Refresh Installation                           ║"
@@ -11,7 +12,7 @@ echo "╚═══════════════════════�
 echo ""
 
 # Get the directory where the script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_DIR="${0:A:h}"
 cd "$SCRIPT_DIR"
 
 # Check if virtual environment exists

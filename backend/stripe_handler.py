@@ -1,41 +1,51 @@
-"""Stripe webhook event handlers for Flaco AI."""
+"""Stripe webhook event handlers for Flaco AI.
+
+This handler issues licenses durably and is safe under Stripe retries.
+"""
+
+from __future__ import annotations
 
 import logging
-import stripe
+import os
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+import stripe
+
+from backend.license_store import LicenseStore
 
 
 class StripeWebhookHandler:
     """Handle Stripe webhook events and manage license lifecycle."""
 
-    def __init__(self, license_generator, email_sender):
-        """Initialize webhook handler.
+    _ACCEPTED_PAYMENT_STATUSES = {"paid", "no_payment_required"}
+    _DEFAULT_ISSUANCE_DEDUP_SECONDS = 6 * 60 * 60  # 6 hours
 
-        Args:
-            license_generator: LicenseKeyGenerator instance
-            email_sender: EmailSender instance
-        """
+    def __init__(self, license_generator, email_sender, license_store: LicenseStore):
         self.license_generator = license_generator
         self.email_sender = email_sender
+        self.license_store = license_store
         self.logger = logging.getLogger(__name__)
 
-        # TODO: Replace with actual database for production
-        # This is a temporary in-memory store for idempotency
-        # In production, use PostgreSQL/MySQL with unique constraints
-        self._processed_sessions = set()
+    @staticmethod
+    def _mask_email(value: Optional[str]) -> str:
+        value = (value or "").strip()
+        if "@" not in value:
+            return "***"
+        local, domain = value.split("@", 1)
+        if not local:
+            return f"***@{domain}"
+        keep = local[:2]
+        return f"{keep}***@{domain}"
 
     def handle_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        """Route event to appropriate handler.
-
-        Args:
-            event: Stripe event object
-
-        Returns:
-            Result dict with success status
-        """
-        event_type = event["type"]
+        """Route event to appropriate handler with durable idempotency."""
+        event_type = event.get("type", "unknown")
         event_id = event.get("id", "unknown")
+
+        if self.license_store.is_event_processed(event_id):
+            self.logger.warning(f"[Event {event_id}] Already processed, skipping (DB idempotency)")
+            return {"success": True, "message": f"Event {event_id} already processed", "idempotent": True}
 
         self.logger.info(f"[Event {event_id}] Processing event type: {event_type}")
 
@@ -49,45 +59,28 @@ class StripeWebhookHandler:
         }
 
         handler = handlers.get(event_type)
-
-        if handler:
-            try:
-                return handler(event)
-            except Exception as e:
-                self.logger.error(
-                    f"[Event {event_id}] Handler exception for {event_type}: {type(e).__name__}: {e}",
-                    exc_info=True
-                )
-                # Re-raise to ensure webhook returns 500 and Stripe retries
-                raise
-        else:
+        if not handler:
             self.logger.info(f"[Event {event_id}] Unhandled event type: {event_type}")
             return {"success": True, "message": f"Ignored event: {event_type}"}
 
+        result = handler(event)
+        if result.get("success"):
+            self.license_store.mark_event_processed(event_id)
+        return result
+
     def _extract_email_from_session(self, session: Dict[str, Any]) -> Optional[str]:
-        """Extract customer email from Stripe session with multiple fallbacks.
-
-        Args:
-            session: Stripe checkout session object
-
-        Returns:
-            Customer email or None
-        """
         session_id = session.get("id", "unknown")
 
-        # Primary: customer_details.email (Stripe Checkout v3)
-        email = session.get("customer_details", {}).get("email")
+        email = (session.get("customer_details") or {}).get("email")
         if email:
-            self.logger.info(f"[Session {session_id}] Email from customer_details: {email}")
+            self.logger.info(f"[Session {session_id}] Email from customer_details: {self._mask_email(email)}")
             return email
 
-        # Fallback 1: customer_email (legacy)
         email = session.get("customer_email")
         if email:
-            self.logger.info(f"[Session {session_id}] Email from customer_email: {email}")
+            self.logger.info(f"[Session {session_id}] Email from customer_email: {self._mask_email(email)}")
             return email
 
-        # Fallback 2: Fetch from Customer object
         customer_id = session.get("customer")
         if customer_id:
             try:
@@ -95,265 +88,207 @@ class StripeWebhookHandler:
                 customer = stripe.Customer.retrieve(customer_id)
                 email = customer.get("email")
                 if email:
-                    self.logger.info(f"[Session {session_id}] Email from Customer object: {email}")
+                    self.logger.info(f"[Session {session_id}] Email from Customer object: {self._mask_email(email)}")
                     return email
             except Exception as e:
                 self.logger.warning(
-                    f"[Session {session_id}] Failed to retrieve customer {customer_id}: {e}"
+                    f"[Session {session_id}] Failed to retrieve customer {customer_id}: {type(e).__name__}: {e}"
                 )
 
         self.logger.error(f"[Session {session_id}] Could not extract email from any source!")
         return None
 
     def _handle_checkout_completed(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle checkout.session.completed event.
+        """Handle checkout.session.completed.
 
-        This fires when a customer completes checkout and payment is successful.
-        For subscriptions with 100% discount codes, this is the ONLY reliable event.
+        For $0 invoices (100% discount), this is often the only reliable event.
         """
         session = event["data"]["object"]
         session_id = session.get("id")
 
-        self.logger.info(f"[Session {session_id}] === CHECKOUT COMPLETED ===")
-        self.logger.info(f"[Session {session_id}] Session mode: {session.get('mode')}")
-        self.logger.info(f"[Session {session_id}] Payment status: {session.get('payment_status')}")
+        mode = session.get("mode")
+        payment_status = session.get("payment_status")
 
-        # Idempotency check (in production, use database with unique constraint)
-        if session_id in self._processed_sessions:
-            self.logger.warning(f"[Session {session_id}] Already processed, skipping (idempotency)")
+        if mode and mode != "subscription":
+            self.logger.info(f"[Session {session_id}] Non-subscription checkout (mode={mode}). Skipping.")
+            return {"success": True, "message": f"Ignored non-subscription checkout: {mode}", "session_id": session_id}
+
+        if payment_status and payment_status not in self._ACCEPTED_PAYMENT_STATUSES:
+            self.logger.warning(
+                f"[Session {session_id}] Checkout completed but payment_status={payment_status}. Not issuing license yet."
+            )
             return {
                 "success": True,
-                "message": f"Session {session_id} already processed",
-                "idempotent": True
+                "message": f"Checkout completed but not payable yet (payment_status={payment_status})",
+                "session_id": session_id,
             }
 
-        # Extract customer email with fallbacks
         customer_email = self._extract_email_from_session(session)
-
         if not customer_email:
-            error_msg = f"No customer email found in session {session_id}"
-            self.logger.error(f"[Session {session_id}] {error_msg}")
-            self.logger.error(f"[Session {session_id}] Session data: {session}")
-            return {
-                "success": False,
-                "error": error_msg,
-                "session_id": session_id
-            }
+            return {"success": False, "error": f"No customer email found in session {session_id}", "session_id": session_id}
 
-        # Extract metadata
-        customer_id = session.get("customer")
         subscription_id = session.get("subscription")
-        metadata = session.get("metadata", {})
+        metadata = session.get("metadata") or {}
 
         tier = metadata.get("tier", "pro")
         billing = metadata.get("billing", "monthly")
 
-        self.logger.info(
-            f"[Session {session_id}] Customer: {customer_email}, "
-            f"Tier: {tier}, Billing: {billing}, "
-            f"Customer ID: {customer_id}, Subscription ID: {subscription_id}"
-        )
+        if not subscription_id:
+            return {"success": False, "error": f"Missing subscription_id in checkout session {session_id}", "session_id": session_id}
 
-        # Generate license key
-        # Expiry: 1 year for annual, 1 month + grace period for monthly
-        if billing == "annual":
-            expires = datetime.now() + timedelta(days=365)
-        else:
-            expires = datetime.now() + timedelta(days=35)  # 30 days + 5 day grace
-
-        self.logger.info(f"[Session {session_id}] Generating license key...")
-
-        try:
-            license_key = self.license_generator.generate_license_key(
-                email=customer_email,
-                tier=tier,
-                expires=expires
-            )
-            self.logger.info(
-                f"[Session {session_id}] License key generated: {license_key[:15]}... "
-                f"(expires: {expires.strftime('%Y-%m-%d')})"
-            )
-        except Exception as e:
-            self.logger.error(
-                f"[Session {session_id}] License generation failed: {type(e).__name__}: {e}",
-                exc_info=True
-            )
-            return {
-                "success": False,
-                "error": f"License generation failed: {e}",
-                "session_id": session_id
-            }
-
-        # Send welcome email with license key
-        self.logger.info(f"[Session {session_id}] Sending license key email to {customer_email}...")
-
-        try:
-            email_sent = self.email_sender.send_license_key_email(
-                to_email=customer_email,
-                license_key=license_key,
-                tier=tier,
-                expires=expires
-            )
-
-            if email_sent:
-                self.logger.info(f"[Session {session_id}] ✅ Email sent successfully to {customer_email}")
-                # Mark as processed (idempotency)
-                self._processed_sessions.add(session_id)
-            else:
-                self.logger.error(
-                    f"[Session {session_id}] ❌ Email sending returned False "
-                    f"(check SMTP logs above for details)"
-                )
+        existing = self.license_store.get_license(subscription_id)
+        if existing:
+            expires = datetime.fromisoformat(existing.expires_iso)
+            if existing.email_sent_at:
                 return {
-                    "success": False,
-                    "error": "Email sending failed (check logs)",
+                    "success": True,
+                    "message": "License already issued (email previously sent)",
                     "session_id": session_id,
-                    "license_key": license_key  # For manual recovery
+                    "subscription_id": subscription_id,
+                    "idempotent": True,
                 }
 
-        except Exception as e:
-            self.logger.error(
-                f"[Session {session_id}] Email sending exception: {type(e).__name__}: {e}",
-                exc_info=True
+            email_sent = self.email_sender.send_license_key_email(
+                to_email=existing.customer_email,
+                license_key=existing.license_key,
+                tier=existing.tier,
+                expires=expires,
             )
+            if email_sent:
+                self.license_store.mark_license_email_sent(subscription_id)
+
             return {
-                "success": False,
-                "error": f"Email sending exception: {e}",
+                "success": bool(email_sent),
+                "message": "Existing license emailed" if email_sent else "Failed to email existing license",
                 "session_id": session_id,
-                "license_key": license_key  # For manual recovery
+                "subscription_id": subscription_id,
+                "idempotent": True,
             }
 
-        # TODO: Store in database for lookup
-        # db.save_license(
-        #     email=customer_email,
-        #     license_key=license_key,
-        #     tier=tier,
-        #     expires=expires,
-        #     customer_id=customer_id,
-        #     subscription_id=subscription_id,
-        #     session_id=session_id
-        # )
+        # If Stripe created a second subscription/checkout accidentally for the same user/tier,
+        # do not mint a fresh key immediately. Reuse the most recent issued license for a short window.
+        try:
+            dedup_seconds = int(os.getenv("LICENSE_ISSUANCE_DEDUP_SECONDS") or self._DEFAULT_ISSUANCE_DEDUP_SECONDS)
+        except Exception:
+            dedup_seconds = self._DEFAULT_ISSUANCE_DEDUP_SECONDS
 
-        self.logger.info(f"[Session {session_id}] === CHECKOUT COMPLETED SUCCESSFULLY ===")
+        recent = self.license_store.get_latest_license_for_email_and_tier(customer_email, tier)
+        if recent:
+            try:
+                recent_created = datetime.fromisoformat(recent.created_at)
+            except Exception:
+                recent_created = None
+
+            if recent_created and (datetime.utcnow() - recent_created).total_seconds() <= max(0, dedup_seconds):
+                # Create a row for this new subscription_id pointing at the same license payload.
+                stored, _created = self.license_store.create_license_if_missing(
+                    subscription_id=subscription_id,
+                    customer_email=recent.customer_email,
+                    tier=recent.tier,
+                    billing=recent.billing,
+                    license_key=recent.license_key,
+                    expires_iso=recent.expires_iso,
+                )
+
+                # Avoid spamming: if we already sent a license email recently, don't send again.
+                if recent.email_sent_at:
+                    return {
+                        "success": True,
+                        "message": "Recent license already issued for this user/tier (deduped)",
+                        "session_id": session_id,
+                        "subscription_id": subscription_id,
+                        "idempotent": True,
+                    }
+
+                expires = datetime.fromisoformat(stored.expires_iso)
+                email_sent = self.email_sender.send_license_key_email(
+                    to_email=stored.customer_email,
+                    license_key=stored.license_key,
+                    tier=stored.tier,
+                    expires=expires,
+                )
+                if email_sent:
+                    self.license_store.mark_license_email_sent(subscription_id)
+
+                return {
+                    "success": bool(email_sent),
+                    "message": "Deduped license emailed" if email_sent else "Failed to email deduped license",
+                    "session_id": session_id,
+                    "subscription_id": subscription_id,
+                    "idempotent": True,
+                }
+
+        expires = datetime.now() + (timedelta(days=365) if billing == "annual" else timedelta(days=35))
+
+        license_key = self.license_generator.generate_license_key(email=customer_email, tier=tier, expires=expires)
+
+        stored, created = self.license_store.create_license_if_missing(
+            subscription_id=subscription_id,
+            customer_email=customer_email,
+            tier=tier,
+            billing=billing,
+            license_key=license_key,
+            expires_iso=expires.isoformat(),
+        )
+
+        if not created:
+            expires = datetime.fromisoformat(stored.expires_iso)
+            license_key = stored.license_key
+
+        email_sent = self.email_sender.send_license_key_email(
+            to_email=customer_email,
+            license_key=license_key,
+            tier=tier,
+            expires=expires,
+        )
+
+        if not email_sent:
+            return {
+                "success": False,
+                "error": "Email sending failed (check logs)",
+                "session_id": session_id,
+                "subscription_id": subscription_id,
+            }
+
+        self.license_store.mark_license_email_sent(subscription_id)
 
         return {
             "success": True,
             "message": f"License key sent to {customer_email}",
             "session_id": session_id,
-            "license_key": license_key  # For logging only (remove in production)
+            "subscription_id": subscription_id,
         }
 
     def _handle_subscription_created(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle customer.subscription.created event."""
         subscription = event["data"]["object"]
-
-        customer_id = subscription.get("customer")
         subscription_id = subscription.get("id")
         status = subscription.get("status")
-
-        self.logger.info(f"Subscription created: {subscription_id}, status={status}, customer={customer_id}")
-
-        # License is already generated in checkout.session.completed
-        # This is just for logging/tracking
-
+        self.logger.info(f"Subscription created: {subscription_id}, status={status}")
         return {"success": True, "message": f"Subscription {subscription_id} created"}
 
     def _handle_subscription_updated(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle customer.subscription.updated event.
-
-        This fires when:
-        - Subscription tier changes (upgrade/downgrade)
-        - Billing changes (monthly → annual)
-        - Subscription renews
-        """
         subscription = event["data"]["object"]
-
-        customer_id = subscription.get("customer")
         subscription_id = subscription.get("id")
         status = subscription.get("status")
-
-        self.logger.info(f"Subscription updated: {subscription_id}, status={status}, customer={customer_id}")
-
-        # If subscription is active, extend license
-        if status == "active":
-            # TODO: Look up customer email from database
-            # customer_email = db.get_customer_email(customer_id)
-            # Generate new license with extended expiry
-            # expires = datetime.now() + timedelta(days=35)
-            # license_key = self.license_generator.generate_license_key(customer_email, tier, expires)
-            # db.update_license(customer_email, license_key, expires)
-            # self.email_sender.send_license_renewed_email(customer_email, license_key, expires)
-            pass
-
+        self.logger.info(f"Subscription updated: {subscription_id}, status={status}")
         return {"success": True, "message": f"Subscription {subscription_id} updated"}
 
     def _handle_subscription_deleted(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle customer.subscription.deleted event.
-
-        This fires when a subscription is canceled.
-        """
         subscription = event["data"]["object"]
-
-        customer_id = subscription.get("customer")
         subscription_id = subscription.get("id")
-
-        self.logger.info(f"Subscription deleted: {subscription_id}, customer={customer_id}")
-
-        # TODO: Revoke license or mark as expired
-        # customer_email = db.get_customer_email(customer_id)
-        # db.revoke_license(customer_email)
-        # self.email_sender.send_cancellation_email(customer_email)
-
+        self.logger.info(f"Subscription deleted: {subscription_id}")
         return {"success": True, "message": f"Subscription {subscription_id} deleted"}
 
     def _handle_payment_succeeded(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle invoice.payment_succeeded event.
-
-        This fires when a subscription payment goes through (monthly renewal).
-        NOTE: This does NOT fire for $0 invoices (100% discount codes).
-        """
         invoice = event["data"]["object"]
-
-        customer_id = invoice.get("customer")
         subscription_id = invoice.get("subscription")
         amount_paid = invoice.get("amount_paid", 0)
-
-        self.logger.info(
-            f"Payment succeeded: ${amount_paid/100:.2f} for subscription {subscription_id}, "
-            f"customer={customer_id}"
-        )
-
-        # Extend license on successful payment
-        # TODO: Extend license expiry by 1 month
-        # customer_email = db.get_customer_email(customer_id)
-        # current_license = db.get_license(customer_email)
-        # new_expires = current_license.expires + timedelta(days=30)
-        # new_license_key = self.license_generator.generate_license_key(customer_email, tier, new_expires)
-        # db.update_license(customer_email, new_license_key, new_expires)
-        # self.email_sender.send_payment_success_email(customer_email, new_license_key, new_expires)
-
+        self.logger.info(f"Payment succeeded: ${amount_paid/100:.2f} for subscription {subscription_id}")
         return {"success": True, "message": f"Payment processed for {subscription_id}"}
 
     def _handle_payment_failed(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle invoice.payment_failed event.
-
-        This fires when a subscription payment fails.
-        """
         invoice = event["data"]["object"]
-
-        customer_id = invoice.get("customer")
         subscription_id = invoice.get("subscription")
         attempt_count = invoice.get("attempt_count")
-
-        self.logger.warning(
-            f"Payment failed for {subscription_id}, attempt {attempt_count}, customer={customer_id}"
-        )
-
-        # TODO: Send payment failed email
-        # customer_email = db.get_customer_email(customer_id)
-        # self.email_sender.send_payment_failed_email(customer_email, attempt_count)
-
-        # Don't immediately revoke license - Stripe retries for ~2 weeks
-        # Only revoke if subscription gets deleted
-
+        self.logger.warning(f"Payment failed for {subscription_id}, attempt {attempt_count}")
         return {"success": True, "message": f"Payment failed for {subscription_id}"}

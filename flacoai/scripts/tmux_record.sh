@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+
+emulate -LR bash
 
 # Check if there is exactly one active window
 WINDOW_COUNT=$(tmux list-windows | wc -l)

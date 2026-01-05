@@ -2,6 +2,8 @@
 
 global-exclude .DS_Store
 
+include flacoai/resources/examples_free.md
+
 recursive-exclude flacoai/website/examples *
 recursive-exclude flacoai/website/_posts *
 

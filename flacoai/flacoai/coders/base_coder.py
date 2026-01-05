@@ -247,6 +247,37 @@ class Coder:
             repo_map_tokens = self.repo_map.max_map_tokens
             repo_map_refresh = self.repo_map.refresh
 
+        # Determine plan (FREE/PRO/ENTERPRISE) without network calls
+        plan = "FREE"
+        try:
+            from datetime import datetime
+            from flacoai.licensing.license_manager import LicenseTier, LicenseManager
+
+            lm = LicenseManager(io=None)
+            license_data = lm.load_license() or {}
+            tier_str = (license_data.get("tier") or "free").lower().strip()
+            expires_str = (license_data.get("expires") or "").strip()
+
+            is_unexpired = True
+            if expires_str:
+                try:
+                    is_unexpired = datetime.now() <= datetime.fromisoformat(expires_str)
+                except Exception:
+                    is_unexpired = True
+
+            if is_unexpired:
+                try:
+                    tier = LicenseTier(tier_str)
+                except Exception:
+                    tier = LicenseTier.FREE
+
+                if tier == LicenseTier.PRO:
+                    plan = "PRO"
+                elif tier == LicenseTier.ENTERPRISE:
+                    plan = "ENTERPRISE"
+        except Exception:
+            plan = "FREE"
+
         # Build compact header (3 labeled lines)
         compact_header = format_compact_header(
             model_name=main_model.name,
@@ -260,6 +291,7 @@ class Coder:
             infinite_output=infinite_output,
             repo_map_tokens=repo_map_tokens,
             repo_map_refresh=repo_map_refresh,
+            plan=plan,
         )
         lines.extend(compact_header.split("\n"))
 
@@ -589,13 +621,14 @@ class Coder:
         # Check if rich console is available and we should use enhanced display
         if hasattr(self.io, 'console') and self.io.console:
             try:
-                # Join all lines into formatted text
-                announcement_text = "\n".join(announcement_lines)
+                # Join all lines into formatted text and center-align within the panel width
+                announcement_text = Text("\n".join(announcement_lines), justify="center")
 
                 # Create a styled panel
                 panel = Panel(
                     announcement_text,
                     title=f"[bold cyan]FlacoAI v{__version__}[/bold cyan]",
+                    title_align="center",
                     border_style="cyan",
                     padding=(1, 2),
                     expand=False

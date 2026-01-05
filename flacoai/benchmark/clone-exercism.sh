@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env zsh
+
+emulate -LR bash
 
 # Create directories if they don't exist
 mkdir -p tmp.benchmarks/exercism

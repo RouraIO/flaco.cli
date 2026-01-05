@@ -271,7 +271,7 @@ class CrashPredictionAnalyzer(BaseAnalyzer):
                         f'{collection_name}.append',
                         f'{collection_name}.remove',
                         f'{collection_name}.insert',
-                        f'{collection_name}\[',  # subscript assignment
+                        f"{collection_name}[",  # subscript assignment
                     ]
 
                     if any(pattern in next_line for pattern in mutation_patterns):

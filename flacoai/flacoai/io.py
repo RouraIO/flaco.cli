@@ -263,10 +263,12 @@ class InputOutput:
         root=".",
         notifications=False,
         notifications_command=None,
+        verbose=False,
     ):
         self.placeholder = None
         self.interrupted = False
         self.never_prompts = set()
+        self.verbose = verbose
         self.editingmode = editingmode
         self.multiline_mode = multiline_mode
         self.bell_on_next_input = False

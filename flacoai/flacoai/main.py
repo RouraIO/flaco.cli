@@ -18,7 +18,10 @@ try:
 except ImportError:
     git = None
 
-import importlib_resources
+try:
+    import importlib_resources  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    from importlib import resources as importlib_resources
 import shtab
 from dotenv import load_dotenv
 from prompt_toolkit.enums import EditingMode
@@ -614,6 +617,7 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
             multiline_mode=args.multiline,
             notifications=args.notifications,
             notifications_command=args.notifications_command,
+            verbose=args.verbose,
         )
 
     io = get_io(args.pretty)
@@ -791,6 +795,35 @@ def main(argv=None, input=None, output=None, force_git_root=None, return_coder=F
 
     is_first_run = is_first_run_of_new_version(io, verbose=args.verbose)
     check_and_load_imports(io, is_first_run, verbose=args.verbose)
+
+    # Fast-path: allow license management commands to run without selecting a model.
+    # This is important for fresh installs and for automation/smoke tests.
+    if args.message:
+        stripped = args.message.strip()
+        if stripped.startswith("/license"):
+            from flacoai.commands import Commands
+
+            io.add_to_input_history(args.message)
+            io.tool_output()
+            cmds = Commands(io=io, coder=None, args=args, parser=parser, verbose=args.verbose)
+            # Everything after '/license' is args to the command.
+            cmd_args = stripped[len("/license") :].strip()
+            cmds.do_run("license", cmd_args)
+            analytics.event("exit", reason="Completed --message /license")
+            record_session()
+            return
+
+        if stripped.startswith("/examples"):
+            from flacoai.commands import Commands
+
+            io.add_to_input_history(args.message)
+            io.tool_output()
+            cmds = Commands(io=io, coder=None, args=args, parser=parser, verbose=args.verbose)
+            cmd_args = stripped[len("/examples") :].strip()
+            cmds.do_run("examples", cmd_args)
+            analytics.event("exit", reason="Completed --message /examples")
+            record_session()
+            return
 
     register_models(git_root, args.model_settings_file, io, verbose=args.verbose)
     register_litellm_models(git_root, args.model_metadata_file, io, verbose=args.verbose)

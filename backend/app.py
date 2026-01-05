@@ -11,6 +11,8 @@ This server handles:
 import os
 import sys
 from datetime import datetime, timedelta
+from typing import Optional, Tuple
+
 from flask import Flask, request, jsonify, redirect, render_template_string
 from flask_cors import CORS
 import stripe
@@ -25,6 +27,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from backend.stripe_handler import StripeWebhookHandler
 from backend.email_sender import EmailSender
 from backend.license_generator import LicenseKeyGenerator
+from backend.license_store import LicenseStore, StoredLicense
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -34,18 +37,87 @@ CORS(app)
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 FLACO_LICENSE_SECRET = os.getenv("FLACO_LICENSE_SECRET", "CHANGE_ME_IN_PRODUCTION")
+FLACO_LICENSE_SECRET_PREVIOUS = os.getenv("FLACO_LICENSE_SECRET_PREVIOUS")
+FLACO_TESTING = os.getenv("FLACO_TESTING") == "1"
 
-if not STRIPE_SECRET_KEY:
+LICENSE_DB_PATH = (
+    os.getenv("LICENSE_DB_PATH")
+    or os.getenv("FLACO_LICENSE_DB_PATH")
+    or os.path.join(os.path.dirname(__file__), "data", "flaco_licenses.sqlite3")
+)
+
+PRO_EXAMPLES_PATH = (
+    os.getenv("PRO_EXAMPLES_PATH")
+    or os.getenv("FLACO_PRO_EXAMPLES_PATH")
+    or os.path.join(os.path.dirname(__file__), "data", "examples_pro.md")
+)
+
+if not STRIPE_SECRET_KEY and not FLACO_TESTING:
     raise ValueError("STRIPE_SECRET_KEY environment variable is required")
 
 # Initialize Stripe
-stripe.api_key = STRIPE_SECRET_KEY
+stripe.api_key = STRIPE_SECRET_KEY or "sk_test_testing"
+
+# Durable storage
+license_store = LicenseStore(LICENSE_DB_PATH)
 
 # Initialize handlers
 webhook_handler = StripeWebhookHandler(
     license_generator=LicenseKeyGenerator(secret_key=FLACO_LICENSE_SECRET),
-    email_sender=EmailSender()
+    email_sender=EmailSender(),
+    license_store=license_store,
 )
+
+
+def _client_ip() -> str:
+    return (
+        request.headers.get("CF-Connecting-IP")
+        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or request.remote_addr
+        or "unknown"
+    )
+
+
+def _secrets_for_verification() -> list[str]:
+    secrets = [FLACO_LICENSE_SECRET]
+    prev = (FLACO_LICENSE_SECRET_PREVIOUS or "").strip()
+    if prev and prev not in secrets:
+        secrets.append(prev)
+    return secrets
+
+
+def _verify_license_record(email: str, license_key: str) -> Tuple[Optional[StoredLicense], Optional[datetime]]:
+    stored = license_store.get_license_by_email_and_key(email, license_key)
+    if not stored:
+        return None, None
+
+    try:
+        expires_dt = datetime.fromisoformat(stored.expires_iso)
+    except Exception:
+        return None, None
+
+    if datetime.now() > expires_dt:
+        return None, expires_dt
+
+    # Signature check (protects against DB corruption / tampering)
+    for secret in _secrets_for_verification():
+        gen = LicenseKeyGenerator(secret_key=secret)
+        if gen.verify_license_key(stored.customer_email, stored.license_key, tier=stored.tier, expires=expires_dt):
+            return stored, expires_dt
+
+    return None, expires_dt
+
+
+def _load_pro_examples_markdown() -> Optional[str]:
+    try:
+        if not PRO_EXAMPLES_PATH:
+            return None
+        if not os.path.exists(PRO_EXAMPLES_PATH):
+            return None
+        with open(PRO_EXAMPLES_PATH, "r", encoding="utf-8", errors="replace") as f:
+            return (f.read() or "").strip()
+    except Exception:
+        return None
 
 
 @app.route("/")
@@ -79,9 +151,10 @@ def stripe_webhook():
 
     try:
         # Verify webhook signature
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
-        )
+        if FLACO_TESTING:
+            event = stripe.Event.construct_from(request.get_json(force=True), stripe.api_key)
+        else:
+            event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
     except ValueError as e:
         # Invalid payload
         app.logger.error(f"Invalid payload: {e}")
@@ -203,7 +276,7 @@ def customer_portal():
 
 @app.route("/api/verify-license", methods=["POST"])
 def verify_license():
-    """Verify a license key (for customer support).
+    """Verify a license key (source of truth: backend DB).
 
     Request body:
     {
@@ -212,33 +285,87 @@ def verify_license():
     }
     """
     try:
-        data = request.get_json()
-        email = data.get("email")
-        license_key = data.get("license_key")
+        data = request.get_json() or {}
+        email = (data.get("email") or "").strip()
+        license_key = (data.get("license_key") or "").strip().upper()
 
         if not email or not license_key:
             return jsonify({"error": "email and license_key are required"}), 400
 
-        # Verify license
-        license_gen = LicenseKeyGenerator(secret_key=FLACO_LICENSE_SECRET)
-        is_valid = license_gen.verify_license_key(email, license_key)
+        ip = _client_ip()
+        if not license_store.allow_request(f"verify:ip:{ip}", limit=60, window_seconds=60):
+            return jsonify({"success": False, "error": "rate_limited"}), 429
+        if not license_store.allow_request(f"verify:email:{email.lower()}", limit=30, window_seconds=60):
+            return jsonify({"success": False, "error": "rate_limited"}), 429
 
-        if is_valid:
-            # Extract tier and expiry from key (you'd need to store this)
-            return jsonify({
+        stored, expires_dt = _verify_license_record(email, license_key)
+        if not stored or not expires_dt:
+            return jsonify({"success": True, "valid": False, "message": "License key is invalid"})
+
+        device_id = (data.get("device_id") or "").strip()
+        device_fingerprint_hash = (data.get("device_fingerprint_hash") or "").strip()
+        if device_id and device_fingerprint_hash:
+            try:
+                license_store.upsert_activation(
+                    license_key=stored.license_key,
+                    subscription_id=stored.subscription_id,
+                    customer_email=stored.customer_email,
+                    device_id=device_id,
+                    device_fingerprint_hash=device_fingerprint_hash,
+                    device_name=(data.get("device_name") or "").strip() or None,
+                    platform=(data.get("platform") or "").strip() or None,
+                    app_version=(data.get("app_version") or "").strip() or None,
+                )
+            except Exception:
+                pass
+
+        return jsonify(
+            {
                 "success": True,
                 "valid": True,
-                "message": "License key is valid"
-            })
-        else:
-            return jsonify({
-                "success": True,
-                "valid": False,
-                "message": "License key is invalid or expired"
-            })
+                "message": "License key is valid",
+                "tier": stored.tier,
+                "expires": stored.expires_iso,
+                "email": stored.customer_email,
+            }
+        )
 
     except Exception as e:
         app.logger.error(f"Error verifying license: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/examples/pro", methods=["POST"])
+def examples_pro():
+    """Return PRO examples markdown only if the license is valid and entitled."""
+    try:
+        data = request.get_json() or {}
+        email = (data.get("email") or "").strip()
+        license_key = (data.get("license_key") or "").strip().upper()
+        if not email or not license_key:
+            return jsonify({"error": "email and license_key are required"}), 400
+
+        ip = _client_ip()
+        if not license_store.allow_request(f"examples:ip:{ip}", limit=60, window_seconds=60):
+            return jsonify({"success": False, "error": "rate_limited"}), 429
+        if not license_store.allow_request(f"examples:email:{email.lower()}", limit=30, window_seconds=60):
+            return jsonify({"success": False, "error": "rate_limited"}), 429
+
+        stored, _expires_dt = _verify_license_record(email, license_key)
+        if not stored:
+            return jsonify({"success": False, "error": "not_entitled"}), 403
+
+        tier = (stored.tier or "").strip().lower()
+        if tier not in {"pro", "enterprise"}:
+            return jsonify({"success": False, "error": "not_entitled"}), 403
+
+        md = _load_pro_examples_markdown()
+        if not md:
+            return jsonify({"success": False, "error": "not_configured"}), 500
+
+        return jsonify({"success": True, "markdown": md})
+    except Exception as e:
+        app.logger.error(f"Error serving pro examples: {e}")
         return jsonify({"error": str(e)}), 500
 
 

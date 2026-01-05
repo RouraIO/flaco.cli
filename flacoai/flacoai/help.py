@@ -6,7 +6,10 @@ import shutil
 import warnings
 from pathlib import Path
 
-import importlib_resources
+try:
+    import importlib_resources  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    from importlib import resources as importlib_resources
 
 from flacoai import __version__, utils
 from flacoai.dump import dump  # noqa: F401

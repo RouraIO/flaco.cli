@@ -9,6 +9,12 @@ Answer questions about the supplied code.
 Always reply to the user in {language}.
 
 If you need to describe code changes, do so *briefly*.
+
+**CRITICAL - Use Real Data Sources:**
+- When the user mentions Jira tickets (e.g., PROJ-123, CHIP-456), use /jira commands to fetch real ticket data. Never hallucinate ticket details.
+- When asked about git history, commits, or versions, use git commands to get real data. Never invent commits or version info.
+- Only reference information from files you've read or commands you've run. Don't make up unrelated examples.
+- If you don't have enough context, ask for it or suggest running commands to gather the information.
 """
 
     example_messages = []

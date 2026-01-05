@@ -9,21 +9,116 @@ from collections import OrderedDict
 from os.path import expanduser
 from pathlib import Path
 
-import pyperclip
-from PIL import Image, ImageGrab
+try:
+    import importlib_resources  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    from importlib import resources as importlib_resources
+
+try:
+    import pyperclip  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    class _MissingPyperclip:
+        class PyperclipException(Exception):
+            pass
+
+        def copy(self, *_args, **_kwargs):
+            raise self.PyperclipException("Clipboard support requires 'pyperclip' to be installed")
+
+        def paste(self, *_args, **_kwargs):
+            raise self.PyperclipException("Clipboard support requires 'pyperclip' to be installed")
+
+    pyperclip = _MissingPyperclip()  # type: ignore
+
+try:
+    from PIL import Image, ImageGrab  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    Image = None  # type: ignore
+    ImageGrab = None  # type: ignore
 from prompt_toolkit.completion import Completion, PathCompleter
 from prompt_toolkit.document import Document
 
-from flacoai import models, prompts, voice
-from flacoai.editor import pipe_editor
-from flacoai.format_settings import format_settings
-from flacoai.help import Help, install_help_extra
-from flacoai.io import CommandCompletionException
-from flacoai.llm import litellm
-from flacoai.repo import ANY_GIT_ERROR
-from flacoai.run_cmd import run_cmd
-from flacoai.scrape import Scraper, install_playwright
-from flacoai.utils import is_image_file
+class _MissingOptionalDependency:
+    def __init__(self, message: str):
+        self._message = message
+
+    def __getattr__(self, _name: str):
+        raise RuntimeError(self._message)
+
+
+def _missing_callable(message: str):
+    def _fn(*_args, **_kwargs):
+        raise RuntimeError(message)
+
+    return _fn
+
+
+def _missing_class(message: str):
+    class _Cls:
+        def __init__(self, *_args, **_kwargs):
+            raise RuntimeError(message)
+
+    return _Cls
+
+
+try:
+    from flacoai import models, prompts, voice
+except Exception:  # pragma: no cover
+    _msg = (
+        "Some Flaco commands require extra dependencies which are not installed in this environment. "
+        "Install the full CLI requirements (for example: `pip install -r requirements.txt`) and try again."
+    )
+    models = _MissingOptionalDependency(_msg)  # type: ignore
+    prompts = _MissingOptionalDependency(_msg)  # type: ignore
+    voice = _MissingOptionalDependency(_msg)  # type: ignore
+
+try:
+    from flacoai.editor import pipe_editor
+except Exception:  # pragma: no cover
+    pipe_editor = _missing_callable(_msg)  # type: ignore
+
+try:
+    from flacoai.format_settings import format_settings
+except Exception:  # pragma: no cover
+    format_settings = _missing_callable(_msg)  # type: ignore
+
+try:
+    from flacoai.help import Help, install_help_extra
+except Exception:  # pragma: no cover
+    Help = _missing_class(_msg)  # type: ignore
+    install_help_extra = _missing_callable(_msg)  # type: ignore
+
+try:
+    from flacoai.io import CommandCompletionException
+except Exception:  # pragma: no cover
+    class CommandCompletionException(Exception):
+        pass
+
+try:
+    from flacoai.llm import litellm
+except Exception:  # pragma: no cover
+    litellm = _MissingOptionalDependency(_msg)  # type: ignore
+
+try:
+    from flacoai.repo import ANY_GIT_ERROR
+except Exception:  # pragma: no cover
+    ANY_GIT_ERROR = (Exception,)  # type: ignore
+
+try:
+    from flacoai.run_cmd import run_cmd
+except Exception:  # pragma: no cover
+    run_cmd = _missing_callable(_msg)  # type: ignore
+
+try:
+    from flacoai.scrape import Scraper, install_playwright
+except Exception:  # pragma: no cover
+    Scraper = _missing_class(_msg)  # type: ignore
+    install_playwright = _missing_callable(_msg)  # type: ignore
+
+try:
+    from flacoai.utils import is_image_file
+except Exception:  # pragma: no cover
+    def is_image_file(_path):
+        return False
 
 from .dump import dump  # noqa: F401
 
@@ -3468,6 +3563,10 @@ Just show me the edits I need to make.
         /license info                  - Show detailed license information
         /license activate <email> <key> - Activate PRO or ENTERPRISE license
         /license deactivate            - Deactivate license (revert to FREE)
+        /license resend [email] [key]  - Re-send your license email (server-backed)
+        /license change-email <email>  - Change the email tied to your license
+        /license devices               - List devices using this license
+        /license reset-devices         - Reset/clear recorded device activations
         /license upgrade               - Get upgrade information
         """
         self._track_command("license")
@@ -3531,6 +3630,56 @@ Just show me the edits I need to make.
 
             except Exception as e:
                 self.io.tool_error(f"License activation error: {e}")
+
+        elif subcommand == "resend":
+            # /license resend
+            # /license resend <email> <key>
+            if len(parts) == 1:
+                ok = license_manager.resend_license_email()
+            elif len(parts) == 3:
+                ok = license_manager.resend_license_email(parts[1], parts[2])
+            else:
+                self.io.tool_error("Usage: /license resend [email] [license-key]")
+                return
+
+            if ok:
+                self.io.tool_output("If the license exists, you’ll receive an email shortly.")
+            else:
+                self.io.tool_error("Failed to request resend.")
+
+        elif subcommand == "change-email":
+            if len(parts) < 2:
+                self.io.tool_error("Usage: /license change-email <new-email>")
+                return
+            ok = license_manager.change_license_email(parts[1])
+            if not ok:
+                self.io.tool_error("Failed to change license email.")
+
+        elif subcommand == "devices":
+            devices = license_manager.list_devices()
+            if devices is None:
+                self.io.tool_error("Unable to list devices.")
+                return
+
+            self.io.tool_output("")
+            self.io.tool_output("Devices for this license:")
+            if not devices:
+                self.io.tool_output("  (none recorded yet)")
+                return
+
+            for d in devices:
+                name = d.get("device_name") or "unknown"
+                plat = d.get("platform") or ""
+                last_seen = d.get("last_seen_at") or ""
+                did = d.get("device_id") or ""
+                self.io.tool_output(f"  - {name} {plat} ({did}) last seen {last_seen}")
+
+        elif subcommand == "reset-devices":
+            ok = license_manager.reset_devices()
+            if ok:
+                self.io.tool_output("✓ Device activations reset")
+            else:
+                self.io.tool_error("Failed to reset device activations")
 
         elif subcommand == "deactivate":
             try:
@@ -3692,6 +3841,46 @@ Just show me the edits I need to make.
             self.io.tool_output("  /license activate <email> <key> - Activate license")
             self.io.tool_output("  /license deactivate            - Deactivate license")
             self.io.tool_output("  /license upgrade               - Get upgrade information")
+
+    def cmd_examples(self, args):
+        """Show usage examples (FREE, and PRO if licensed)"""
+        self._track_command("examples")
+
+        topic = (args or "").strip().lower()
+        want_pro = topic in {"pro", "premium", "paid"}
+
+        try:
+            resources_dir = importlib_resources.files("flacoai.resources")
+
+            if want_pro:
+                from flacoai.licensing.license_manager import LicenseManager, LicenseTier
+
+                license_manager = LicenseManager(io=self.io)
+                tier = license_manager.get_tier()
+                if tier not in {LicenseTier.PRO, LicenseTier.ENTERPRISE}:
+                    self.io.tool_output("🔒 PRO examples are available to PRO/ENTERPRISE users.")
+                    self.io.tool_output("Run /license upgrade to purchase, or /license activate if you already have a key.")
+                    return
+
+                md = license_manager.fetch_pro_examples_markdown()
+                if md:
+                    self.io.assistant_output(md)
+                    return
+
+                cached = license_manager.get_cached_pro_examples_markdown()
+                if cached:
+                    self.io.tool_warning("Using cached PRO examples (license server unreachable).")
+                    self.io.assistant_output(cached)
+                    return
+
+                self.io.tool_error("Unable to load PRO examples right now.")
+                self.io.tool_output("Try again, or run /license to confirm your tier.")
+                return
+
+            md = resources_dir.joinpath("examples_free.md").read_text(encoding="utf-8")
+            self.io.assistant_output(md)
+        except Exception as e:
+            self.io.tool_error(f"Unable to load examples: {e}")
 
 
 def expand_subdir(file_path):
